@@ -8,7 +8,8 @@ Three uses of the same material. Nothing in this file has been done for you: eac
 - [ ] Confirm the affiliation (Rockup) in `CITATION.cff`, `.zenodo.json`, `templates/paper.md` and `templates/slides.html`, or replace it. An employer may need to agree to be named.
 - [ ] Add your ORCID iD to `CITATION.cff` and `.zenodo.json` (field `orcid` of the creator).
 - [ ] Decide on the statement "Use of AI tools" at the end of the paper. Most journals require such a statement; its wording is yours.
-- [ ] Read `docs/ERRATA.md`. It states in public which numbers of the talk were wrong.
+- [ ] Read `docs/ERRATA.md`. It states in public which numbers of the first version of the slides were wrong.
+- [ ] Check how the talk is described. README, paper, slides and announcement say "prepared for FOSS4G 2026" and claim nothing about the session itself. Change the wording in `templates/` to what happened.
 
 ## A. Conference organisers
 
@@ -21,7 +22,7 @@ Send:
 | `docs/TALK.md` | abstract as submitted, and what changed since |
 | link to the repository | code, data manifest, results |
 
-The contribution is licensed CC BY 4.0, as declared at submission. If the organisers publish slides on the programme page, send version 2 and mention that it replaces the slides shown on 3 September, with the list of corrections.
+The contribution is licensed CC BY 4.0, as declared at submission. If the organisers publish slides on the programme page, send version 2 with the list of corrections.
 
 ## B. A DOI
 

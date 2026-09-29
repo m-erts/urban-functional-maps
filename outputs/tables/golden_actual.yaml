@@ -157,10 +157,10 @@ uk_diag_2021_naive: 0.505676
 uk_district_areas_clean: 9
 uk_district_null_share_clean: 0.693729
 uk_district_observed_clean: 0.946895
-uk_district_observed_stage: 0.961319
+uk_district_observed_deck_v1: 0.961319
 uk_district_random_clean: 0.656888
 uk_district_random_clean_sd: 0.007768
-uk_district_random_stage: 0.799037
+uk_district_random_deck_v1: 0.799037
 uk_effective_areas_2011: 16.188776
 uk_effective_areas_2021: 24.397028
 uk_excess_msoa_2011: 0.58284

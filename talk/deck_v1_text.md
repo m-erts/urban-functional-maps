@@ -3,7 +3,7 @@
 
 # Deck v1: text of the slides and speaker notes
 
-17 slides, prepared in August 2026 for the talk of 3 September 2026.
+17 slides, prepared in August 2026 for FOSS4G 2026.
 
 ---
 ## Slide 1 — title

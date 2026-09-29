@@ -44,17 +44,3 @@ preferred-citation:
   month: 9
   notes: "Preprint, version 1.0.0, not peer reviewed"
   url: "https://github.com/m-erts/urban-functional-maps/blob/main/docs/paper/paper.md"
-references:
-  - type: conference-paper
-    title: "Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps"
-    authors:
-      - family-names: Ercegovac
-        given-names: Marija
-    conference:
-      name: "FOSS4G 2026"
-      city: Hiroshima
-      country: JP
-      date-start: "2026-08-30"
-      date-end: "2026-09-05"
-    year: 2026
-    url: "https://talks.osgeo.org/foss4g-2026"

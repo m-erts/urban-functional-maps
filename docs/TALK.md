@@ -1,7 +1,7 @@
 # The talk
 
 **Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps**
-FOSS4G 2026 Hiroshima · 2026-09-03 14:00–14:30 JST (07:00–07:30 Europe/Belgrade) · Room 2
+Accepted for the general track of FOSS4G 2026, Hiroshima; scheduled for 2026-09-03, 14:00 to 14:30 JST.
 Speaker: Marija Ercegovac · Licence of the contribution: CC BY 4.0
 Programme: https://talks.osgeo.org/foss4g-2026 · Conference: https://2026.foss4g.org/en/program-schedule/
 
@@ -44,7 +44,7 @@ Level of technical complexity: 2 – intermediate.
 ## Speaker bio (as submitted)
 Senior Geospatial Analyst at Rockup, building neighborhood analytics tools. Previously Geospatial Researcher (R&D) at Habidatum, developing cross-country urban mobility pipelines for European policy institutions — OD matrices, temporal land-use profiling, service accessibility mapping across 16 countries. Former geospatial data scientist at Yandex (GeoAI prediction models, spatial feature engineering). Invited lecturer on geospatial data science (MIPT Deep Learning School) and QGIS (RheinMain University). Jury member at IAAC Barcelona. Daily tools: Python, GeoPandas, PostGIS, QGIS. Admitted to MSc Geomatics at TU Delft. Runs URBAN_MASH (2,200+ subscribers).
 
-## What the abstract announced and what was delivered
+## What the abstract announced and what is in this repository
 
 | Announced in the abstract | In this repository |
 |---|---|

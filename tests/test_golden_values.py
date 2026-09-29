@@ -26,7 +26,7 @@ def test_golden(g):
         assert ACTUAL[g["id"]] == pytest.approx(g["value"], abs=g["tol"])
 
 
-def test_stage_register_is_complete():
-    stage = yaml.safe_load((ROOT / "tests" / "stage_values.yaml").read_text(encoding="utf-8"))
-    missing = [r["key"] for r in stage if r["key"] not in ACTUAL]
-    assert not missing, f"stage numbers without a pipeline value: {missing}"
+def test_deck_register_is_complete():
+    deck = yaml.safe_load((ROOT / "tests" / "deck_values.yaml").read_text(encoding="utf-8"))
+    missing = [r["key"] for r in deck if r["key"] not in ACTUAL]
+    assert not missing, f"numbers of deck v1 without a pipeline value: {missing}"

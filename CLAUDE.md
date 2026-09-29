@@ -4,7 +4,8 @@ Project memory for Claude Code.
 
 ## What this is
 
-Pipeline, paper and slides on open mobility data for functional-area maps (FOSS4G 2026, Hiroshima).
+Pipeline, paper and slides on open mobility data for functional-area maps, prepared for FOSS4G 2026, Hiroshima.
+The documents say "prepared for" and claim nothing about the session; do not write that the talk was given unless the author says so.
 Repository: https://github.com/m-erts/urban-functional-maps. Author: Marija Ercegovac.
 
 ## Rules

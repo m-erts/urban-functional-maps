@@ -4,7 +4,7 @@ Rendered from `templates/linkedin.md`; the numbers come from the pipeline. Two v
 
 ## English
 
-On 3 September I gave a talk at FOSS4G 2026 in Hiroshima on open mobility data for functional-area maps. The code, the paper and the corrected slides are now public.
+For FOSS4G 2026 in Hiroshima I prepared a talk on open mobility data for functional-area maps. The code, the paper and the corrected slides are now public.
 
 The question: when you draw labour-market areas from open data, how much of the map is the data, how much the zoning, and how much the algorithm?
 
@@ -18,7 +18,7 @@ Four results, all reproducible from the repository.
 
 4. A similar count of areas is not a similar map. {{uk_areas_flows_only_2011}} delimited areas against {{uk_ttwa_official_touching_ew_2011}} official ones agree at an adjusted Rand index of {{uk_ari_contiguous_2011:.2f}}. Enforcing the published validity rule lowers it to {{uk_ari_ttwa_greedy_2011:.2f}}. Agreement is measured with an error matrix counted in employed residents, with intersection over union per official area.
 
-The same audit covers Serbian census bands, Dutch register pairs, the Japanese people-flow panel and OpenStreetMap GPS traces. In the slides of the talk it found {{deck_corrected}} of {{deck_numbers}} numbers to correct; the list is in the repository.
+The same audit covers Serbian census bands, Dutch register pairs, the Japanese people-flow panel and OpenStreetMap GPS traces. In the first version of the slides it found {{deck_corrected}} of {{deck_numbers}} numbers to correct; the list is in the repository.
 
 What the pipeline does: reads each source with its code list, reconciles with published totals, delimits, repairs contiguity, runs both nulls, builds the error matrix, and writes every number that the paper and the slides then print.
 
@@ -31,7 +31,7 @@ Code MIT, text and figures CC BY 4.0. Data: ONS, SORS, CBS, MLIT, JRC, © OpenSt
 
 ## Русский
 
-3 сентября я выступала на FOSS4G 2026 в Хиросиме с докладом об открытых данных о мобильности для карт функциональных ареалов. Код, статья и исправленные слайды теперь в открытом доступе.
+Для FOSS4G 2026 в Хиросиме я подготовила доклад об открытых данных о мобильности для карт функциональных ареалов. Код, статья и исправленные слайды теперь в открытом доступе.
 
 Вопрос: когда мы рисуем ареалы рынков труда по открытым данным, какая часть карты получена из данных, какая из нарезки территории, какая из алгоритма?
 
@@ -45,7 +45,7 @@ Code MIT, text and figures CC BY 4.0. Data: ONS, SORS, CBS, MLIT, JRC, © OpenSt
 
 4. Близкое число ареалов не означает близкую карту. {{uk_areas_flows_only_2011}} построенных ареалов и {{uk_ttwa_official_touching_ew_2011}} официальных согласуются на уровне скорректированного индекса Рэнда {{uk_ari_contiguous_2011:.2f}}. После применения опубликованного правила валидности он падает до {{uk_ari_ttwa_greedy_2011:.2f}}. Согласие измеряется матрицей ошибок в занятых жителях и пересечением по объединению (IoU) для каждого официального ареала.
 
-Та же проверка сделана для сербской переписи, нидерландского регистра, японской панели присутствия и GPS-треков OpenStreetMap. В слайдах доклада она нашла {{deck_corrected}} чисел из {{deck_numbers}}, которые нужно исправить. Список лежит в репозитории.
+Та же проверка сделана для сербской переписи, нидерландского регистра, японской панели присутствия и GPS-треков OpenStreetMap. В первой версии слайдов она нашла {{deck_corrected}} чисел из {{deck_numbers}}, которые нужно исправить. Список лежит в репозитории.
 
 Репозиторий: https://github.com/m-erts/urban-functional-maps
 Статья: https://github.com/m-erts/urban-functional-maps/blob/main/docs/paper/paper.md

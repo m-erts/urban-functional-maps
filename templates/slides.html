@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Open mobility data for functional-area maps</title>
-<meta name="description" content="What each open mobility source leaves out, and how much of a functional-area map is scale, contiguity and algorithm. FOSS4G 2026, Hiroshima.">
+<meta name="description" content="What each open mobility source leaves out, and how much of a functional-area map is scale, contiguity and algorithm. Prepared for FOSS4G 2026, Hiroshima.">
 <meta name="author" content="Marija Ercegovac">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -123,7 +123,7 @@ footer .pg { font-family: var(--mono); white-space: nowrap; }
     <h1>Open mobility data for functional-area maps</h1>
     <p class="lede" style="font-size:22px; max-width:900px">What each source leaves out, and how much of the result is scale, contiguity and algorithm.</p>
     <p style="margin-top:44px">Marija Ercegovac, Rockup</p>
-    <p class="small">FOSS4G 2026, Hiroshima, 3 September 2026. Talk title: Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps.<br>
+    <p class="small">Prepared for FOSS4G 2026, Hiroshima. Talk title: Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps.<br>
     This deck is version 2. Every number in it is written by the pipeline at <span class="num">github.com/m-erts/urban-functional-maps</span>.</p>
     <table style="width:auto; margin-top:34px" class="dense">
       <tr><td><span class="src e"></span>Eurostat-type grid and presence statistics</td><td><span class="src o"></span>OpenStreetMap</td><td><span class="src c"></span>Census and register counts</td><td><span class="src r"></span>Method, reference</td></tr>
@@ -528,7 +528,7 @@ footer .pg { font-family: var(--mono); white-space: nowrap; }
 <!-- 23 -->
 <section class="slide">
   <h2>Deck v1, audited</h2>
-  <p class="lede">{{deck_numbers}} numbers in the deck prepared for 3 September. {{deck_reproduced}} reproduced within the rounding of the slide, {{deck_corrected}} corrected. Three statements of fact corrected.</p>
+  <p class="lede">{{deck_numbers}} numbers in the first version of these slides. {{deck_reproduced}} reproduced within the rounding of the slide, {{deck_corrected}} corrected. Three statements of fact corrected.</p>
   <table class="dense">
     <tr><th>What the deck said</th><th>What the pipeline gives</th><th>Kind of error</th></tr>
     <tr><td>District level: 0.961 observed, 0.798 random, "80 % is arithmetic"</td><td>{{uk_district_observed_clean:.3f}} and {{uk_district_random_clean:.3f}}; {{uk_district_null_share_clean*100:.0f}} %</td><td>computed before people coded at home were removed</td></tr>

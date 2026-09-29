@@ -1,6 +1,6 @@
 # Corrections to deck v1
 
-Deck v1 is the version prepared for the talk of 3 September 2026 (text in `talk/deck_v1_text.md`).
+Deck v1 is the first version of the slides, prepared in August 2026 for FOSS4G 2026 (text in `talk/deck_v1_text.md`).
 The slides in `docs/slides/` are version 2. This file lists what changed and why.
 Numbers are compared one by one in [RESULTS.md](RESULTS.md).
 
@@ -20,7 +20,7 @@ Numbers are compared one by one in [RESULTS.md](RESULTS.md).
 
 | Slide of v1 | Deck v1 | Corrected | Cause |
 |---|---|---|---|
-| 7 | District level: 0.961 observed, 0.798 random; "80 % of the result was arithmetic" | 0.947 and 0.657; 69 % | The stage values come from the 2021 matrix before people coded at their residence were removed |
+| 7 | District level: 0.961 observed, 0.798 random; "80 % of the result was arithmetic" | 0.947 and 0.657; 69 % | The values of deck v1 come from the 2021 matrix before people coded at their residence were removed |
 | 8 | "235 areas ... 67 after enforcing the rule" | 235 is the 2021 matrix. 67 comes from the 197 areas of the 2011 matrix. The 2021 matrix gives 66 | Two census years in one sentence |
 | 10 | r = −0.28 between the education-work difference and the area share of urban classes | −0.28 is the correlation of work self-containment with the area share. For the difference the value is +0.17. Rank correlations are near zero for both weightings | Wrong quantity |
 | 10 | r = 0.82 between work and education self-containment | 0.80 on 160 municipalities (Spearman 0.81); 0.85 if the eight structural zeros are kept | No variant gives 0.82 |

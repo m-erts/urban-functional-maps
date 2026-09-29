@@ -477,7 +477,7 @@
 - id: uk_district_observed_clean
   value: 0.946895
   tol: 0.0001
-- id: uk_district_observed_stage
+- id: uk_district_observed_deck_v1
   value: 0.961319
   tol: 0.0001
 - id: uk_district_random_clean
@@ -486,7 +486,7 @@
 - id: uk_district_random_clean_sd
   value: 0.007768
   tol: 0.0001
-- id: uk_district_random_stage
+- id: uk_district_random_deck_v1
   value: 0.799037
   tol: 0.0001
 - id: uk_effective_areas_2011

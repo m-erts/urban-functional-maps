@@ -240,8 +240,8 @@ def uk() -> dict:
     out["uk_district_random_clean_sd"] = pick("LAD", 2021, "flows_only_fixed_q95", "null_sd")
     out["uk_district_areas_clean"] = int(pick("LAD", 2021, "flows_only_fixed_q95", "areas"))
     out["uk_district_null_share_clean"] = pick("LAD", 2021, "flows_only_fixed_q95", "null_share")
-    out["uk_district_observed_stage"] = pick("LAD", 2021, "flows_only_naive_q85", "observed")
-    out["uk_district_random_stage"] = pick("LAD", 2021, "flows_only_naive_q85", "null_mean")
+    out["uk_district_observed_deck_v1"] = pick("LAD", 2021, "flows_only_naive_q85", "observed")
+    out["uk_district_random_deck_v1"] = pick("LAD", 2021, "flows_only_naive_q85", "null_mean")
     return out
 
 

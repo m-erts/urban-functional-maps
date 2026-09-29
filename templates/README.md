@@ -6,14 +6,14 @@
 
 Open mobility data for functional-area maps: what each source leaves out, and how much of a result is scale, contiguity and algorithm.
 
-Pipeline, paper and slides behind the talk *Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps* (FOSS4G 2026, Hiroshima, 3 September 2026).
+Pipeline, paper and slides for the talk *Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps*, prepared for FOSS4G 2026, Hiroshima.
 
 | | |
 |---|---|
 | Paper (preprint) | [docs/paper/paper.md](docs/paper/paper.md) · [PDF](docs/paper/paper.pdf) |
 | Slides | [docs/slides/index.html](docs/slides/index.html) · [PDF](docs/slides/slides.pdf) |
-| Every number, with its status against the deck of the talk | [docs/RESULTS.md](docs/RESULTS.md) |
-| Corrections to the deck of the talk | [docs/ERRATA.md](docs/ERRATA.md) |
+| Every number, with its status against the first version of the slides | [docs/RESULTS.md](docs/RESULTS.md) |
+| Corrections to the first version of the slides | [docs/ERRATA.md](docs/ERRATA.md) |
 | Inputs, licences, checksums | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) · [data/manifest.yaml](data/manifest.yaml) |
 
 ## Research question
@@ -152,7 +152,7 @@ It reads Overture Places from S3 with DuckDB and writes entropy and Hill numbers
 - The pipeline writes every number to `outputs/tables/golden_actual.yaml`.
 - `README.md`, the paper, the slides and the announcement are rendered from `templates/`; their numbers are placeholders that name entries of that file. `python scripts/render_docs.py --check` fails if a document is out of date.
 - [tests/golden_values.yaml](tests/golden_values.yaml) is a frozen copy; `pytest` compares a new run with it.
-- [tests/stage_values.yaml](tests/stage_values.yaml) holds the {{deck_numbers}} numbers of the deck of the talk; [docs/RESULTS.md](docs/RESULTS.md) states for each whether the pipeline reproduces it.
+- [tests/deck_values.yaml](tests/deck_values.yaml) holds the {{deck_numbers}} numbers of the first version of the slides; [docs/RESULTS.md](docs/RESULTS.md) states for each whether the pipeline reproduces it.
 - A run in a fresh environment built from [requirements.lock](requirements.lock) gave the same values.
 
 ## Repository
