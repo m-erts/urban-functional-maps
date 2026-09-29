@@ -22,4 +22,4 @@ dist/
 # local
 .env
 .DS_Store
-*_dna.parquet
+/*_dna.parquet
