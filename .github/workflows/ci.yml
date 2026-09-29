@@ -17,4 +17,4 @@ jobs:
       # unit tests and the regression snapshot; tests that need raw data skip themselves
       - run: pytest -q
       - name: CITATION.cff is valid
-        run: pip install cffconvert && cffconvert --validate
+        run: cffconvert --validate

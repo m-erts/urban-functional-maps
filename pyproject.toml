@@ -41,7 +41,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest~=8.4", "ruff>=0.6"]
+dev = ["pytest~=8.4", "ruff==0.16.9", "cffconvert==2.0.0"]
 postgis = ["sqlalchemy>=2", "geoalchemy2>=0.15", "psycopg2-binary>=2.9"]
 
 [project.urls]
