@@ -1,0 +1,25 @@
+# data: inputs and intermediate files are fetched or regenerated, never committed
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+outputs/maps/*
+!outputs/maps/.gitkeep
+*.parquet
+!data/derived/**/*.parquet
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+build/
+dist/
+
+# local
+.env
+.DS_Store
+*_dna.parquet
