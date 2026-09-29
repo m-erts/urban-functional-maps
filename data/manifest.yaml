@@ -1,0 +1,209 @@
+# Every input file: where it comes from, its licence, and the checksum of the copy behind the
+# published numbers. `stable: false` marks files assembled from an API at download time; their
+# checksum identifies our copy and is not checked against a new download.
+# Paths are relative to data/raw unless `root: repo`. CBS 81252NED is fetched through OData into
+# data/interim by omfm.sources.nl_cbs and compared with the national total in the tests.
+accessed: "2026-08-17 to 2026-09-29"
+files:
+- path: GB/odwp01ew.zip
+  source: ONS / Nomis, Census 2021 origin-destination ODWP01EW
+  url: https://www.nomisweb.co.uk/output/census/2021/odwp01ew.zip
+  licence: OGL-UK-3.0
+  fetch: http
+  bytes: 80621150
+  sha256: 9e32ababfd9f77e353411d399e463f812942440df115a2d6c296c74dbeea70d7
+  stable: true
+- path: GB/wu01ew_msoa.zip
+  source: ONS / Nomis, Census 2011 origin-destination WU01EW, MSOA
+  url: https://www.nomisweb.co.uk/output/census/2011/wu01ew_msoa.zip
+  licence: OGL-UK-3.0
+  fetch: http
+  bytes: 10178984
+  sha256: 5e36b3a10839454dab718140d14f40f478365adde2de8de774fc3b7140b297ce
+  stable: true
+- path: GB/MSOA_2021_EW_BGC_V3.geojson
+  source: ONS Open Geography, MSOA December 2021 boundaries EW BGC V3
+  url: https://geoportal.statistics.gov.uk/datasets/ons::middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3-2/about
+  licence: OGL-UK-3.0
+  fetch: manual
+  note: Download as GeoJSON and save under this name.
+  bytes: 40558043
+  sha256: 21a533310fc279ab900b8ed6f86e5091855265e3d45d3dc84c8e0449e177532d
+  stable: true
+- path: GB/MSOA_2011_EW_BGC_V3.geojson
+  source: ONS Open Geography, MSOA December 2011 boundaries EW BGC V3
+  url: https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/MSOA_Dec_2011_Boundaries_Generalised_Clipped_BGC_EW_V3_2022/FeatureServer
+  licence: OGL-UK-3.0
+  fetch: arcgis
+  page: 500
+  stable: false
+  bytes: 40623898
+  sha256: ff077698b9ef74ae67553f01465ef93e773175f87dd027548ab76b9183dff1c7
+- path: GB/TTWA_2011_UK_SGCB.geojson
+  source: ONS Open Geography, Travel to Work Areas December 2011, super-generalised
+  url: https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Travel_to_Work_Areas_Dec_2011_SGCB_in_United_Kingdom_2022/FeatureServer
+  licence: OGL-UK-3.0
+  fetch: arcgis
+  page: 25
+  stable: false
+  bytes: 3111273
+  sha256: 0717c46155d72e84d88af33c936b8ad8952bd16348b58abbbbcc32b4f153c1b3
+- path: GB/LSOA11_TTWA11_UK_LU.json
+  source: ONS Open Geography, LSOA 2011 to TTWA 2011 lookup
+  url: https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/LSOA11_TTWA11_UK_LU_04a063122da94a2c9bc94bcef63866aa/FeatureServer
+  licence: OGL-UK-3.0
+  fetch: arcgis
+  stable: false
+  bytes: 5537674
+  sha256: 4a1543c60e0e0a98e2918f6d27f0e735a3e7980578a2297ca0774b1bac50c520
+- path: GB/OA11_LSOA11_MSOA11_LAD11_EW_LU.json
+  source: ONS Open Geography, OA 2011 to LSOA to MSOA to LAD lookup
+  url: https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/OA11_LSOA11_MSOA11_LAD11_EW_LUv2_b3fe7c68f4b2420185eaff6284d4c125/FeatureServer
+  licence: OGL-UK-3.0
+  fetch: arcgis
+  stable: false
+  bytes: 40744263
+  sha256: 0e0bd9bbff47ee60e35cbe06a94aec4eec78652338b7fb283d926931a98bff98
+- path: GB/OA21_TTWA11_LAD22_EW_LU.json
+  source: ONS Open Geography, OA 2021 to TTWA 2011 best-fit lookup
+  url: https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Output_Area_2021_to_TTWAs_2011_to_LAD_2022_Lookup_for_England_and_Wales_2022/FeatureServer
+  licence: OGL-UK-3.0
+  fetch: arcgis
+  stable: false
+  bytes: 31049461
+  sha256: 6b52dc5388e9011db98d69f73eb57163d23faf2833e4e2e1879b877a6c927ed1
+- path: GB/OA21_LSOA21_MSOA21_EW_LU.json
+  source: ONS Open Geography, OA 2021 to LSOA to MSOA lookup
+  url: https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/OA_LSOA_MSOA_EW_DEC_2021_LU_v3/FeatureServer
+  licence: OGL-UK-3.0
+  fetch: arcgis
+  stable: false
+  bytes: 50047453
+  sha256: 6e2b9b87fb89590acf59c3700ba1869109956516c946873d177aad7fae35e022
+- path: RS/dnevne_migracije_aktivnog_stanovnistva_koje_obavlja_zanimanje_po_polu_i_tipu_naselja.xlsx
+  source: SORS, Census 2022, daily migrations of the employed
+  url: https://popis2022.stat.gov.rs/sr-latn/popisni-podaci-eksel-tabele/
+  licence: SORS terms of use, source must be cited
+  fetch: manual
+  note: Section 'Opštine'.
+  bytes: 109054
+  sha256: 5c324a958fb2ba9b77af499d41667112a24d5e576a08b28729b9fc62815e5e06
+  stable: true
+- path: RS/dnevne_migracije_učenika_i_studenata_po_polu_i_tipu_naselja.xlsx
+  source: SORS, Census 2022, daily migrations of pupils and students
+  url: https://popis2022.stat.gov.rs/sr-latn/popisni-podaci-eksel-tabele/
+  licence: SORS terms of use, source must be cited
+  fetch: manual
+  note: Section 'Opštine'.
+  bytes: 102948
+  sha256: bdaf8b1ba5c6845cb61348dd64f2d33946c06fd180d6e752a066778be5a7859d
+  stable: true
+- path: RS/opstine_geosrbija_shp.zip
+  source: Republic Geodetic Authority, GeoSrbija, municipal boundaries (Op_tina.shp)
+  url: https://download.geosrbija.rs/
+  licence: GeoSrbija terms of use
+  fetch: manual
+  note: Registration required. Zip the shapefile parts under this name.
+  bytes: 11025546
+  sha256: 477bf609a5d2bccc57cfb660d095757229a49f33099c9dd0984cf1f110e6abf5
+  stable: true
+- path: GHSL/GHS_POP_E2030_GLOBE_R2023A_54009_100_V1_0_R4_C20.zip
+  source: JRC GHS-POP R2023A, epoch 2030, 100 m, tile R4_C20
+  url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_POP_GLOBE_R2023A/GHS_POP_E2030_GLOBE_R2023A_54009_100/V1-0/tiles/GHS_POP_E2030_GLOBE_R2023A_54009_100_V1_0_R4_C20.zip
+  licence: CC-BY-4.0
+  fetch: http
+  bytes: 74550347
+  sha256: 2b2f2a1057853f3a5913f45611edcbaf023243616a1a7268a188c886b5e47ab3
+  stable: true
+- path: GHSL/GHS_SMOD_E2030_GLOBE_R2023A_54009_1000_V2_0.zip
+  source: JRC GHS-SMOD R2023A, epoch 2030, 1 km, global
+  url: https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/GHSL/GHS_SMOD_GLOBE_R2023A/GHS_SMOD_E2030_GLOBE_R2023A_54009_1000/V2-0/GHS_SMOD_E2030_GLOBE_R2023A_54009_1000_V2_0.zip
+  licence: CC-BY-4.0
+  fetch: http
+  bytes: 29792213
+  sha256: 350f7f877156e6ac1f7e2a294955d1f3caa020b9199b504dbe8c327e974fda03
+  stable: true
+- path: JP/monthly_mdp_mesh1km_34.zip
+  source: MLIT nationwide people-flow open data, 1 km mesh, Hiroshima prefecture
+  url: https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto
+  licence: Government of Japan Standard Terms of Use 2.0 (compatible with CC BY 4.0)
+  fetch: manual
+  bytes: 4904323
+  sha256: 31f8d4eb9cb6bb92d1643f5176366d2962a7449daddef44d0e3b56470df5cf4c
+  stable: true
+- path: JP/monthly_fromto_city_34.zip
+  source: MLIT nationwide people-flow open data, municipality by residence ring, Hiroshima prefecture
+  url: https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto
+  licence: Government of Japan Standard Terms of Use 2.0
+  fetch: manual
+  bytes: 222641
+  sha256: 20c59b0a20d8ade60f23da3ce00229b25d5039eb574b8414c7235941104a2f31
+  stable: true
+- path: JP/attribute.zip
+  source: MLIT people-flow, mesh attribute file
+  url: https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto
+  licence: Government of Japan Standard Terms of Use 2.0
+  fetch: manual
+  bytes: 7931790
+  sha256: 0a1b5b6fcd17013179e1e3c687b5bac11eec1ec5eabcb9f20a08534e37cfe20f
+  stable: true
+- path: JP/prefcodecitycodemaster.zip
+  source: MLIT people-flow, prefecture and municipality code master
+  url: https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto
+  licence: Government of Japan Standard Terms of Use 2.0
+  fetch: manual
+  bytes: 95299
+  sha256: 57482cc64d47f87eb5e63dfc2875d8095ac37fa12b7758553832ac9bd5c2786c
+  stable: true
+- path: JP/opendatadefinition.pdf
+  source: MLIT people-flow, data definition document
+  url: https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto
+  licence: Government of Japan Standard Terms of Use 2.0
+  fetch: manual
+  bytes: 816879
+  sha256: 7274bbba1f1b4a054b158ba23385168a9bdc4b9a4601797b699b8db9a29c19c5
+  stable: true
+- path: OSM/osm_traces_hiroshima_centre.csv
+  source: OpenStreetMap public GPS traces, API 0.6 trackpoints
+  url: https://api.openstreetmap.org/api/0.6/trackpoints
+  licence: ODbL-1.0
+  fetch: osm_api
+  stable: false
+  note: A new download returns the archive as of that day. The checksum identifies the file behind the published numbers (downloaded August 2026).
+  bytes: 9000014
+  sha256: 93e562e4b0ca28a0a7e9d96fa20799b5a01ee476858ca295b2db4cc29d4cabca
+- path: OSM/osm_traces_belgrade_centre.csv
+  source: OpenStreetMap public GPS traces, API 0.6 trackpoints
+  url: https://api.openstreetmap.org/api/0.6/trackpoints
+  licence: ODbL-1.0
+  fetch: osm_api
+  stable: false
+  bytes: 8800014
+  sha256: 4743139ed985b985e620f10a340c47a6e6ee9dabf9684d868e6a7da902f08d04
+- path: OSM/osm_traces_london_soho.csv
+  source: OpenStreetMap public GPS traces, API 0.6 trackpoints
+  url: https://api.openstreetmap.org/api/0.6/trackpoints
+  licence: ODbL-1.0
+  fetch: osm_api
+  stable: false
+  bytes: 8140014
+  sha256: 99788c6311c4a87de8820d74cf9ac4f8ce576885bc11a5057069cb18bdf9ce98
+- path: data/derived/overture/hiroshima_dna.parquet
+  root: repo
+  source: Overture Maps Places release 2026-07-22.0, aggregated to H3 resolution 8 by scripts/neighborhood_dna.py
+  url: s3://overturemaps-us-west-2/release/2026-07-22.0/theme=places/type=place/
+  licence: CDLA-Permissive-2.0
+  fetch: manual
+  note: The release has left the public bucket. The aggregate is kept in the repository.
+  bytes: 30608
+  sha256: 17951135325c7dfaf4a710188613fbe9373f06880d0513d8b007224ef8a3fb4d
+  stable: true
+- path: data/derived/overture/belgrade_dna.parquet
+  root: repo
+  source: Overture Maps Places release 2026-07-22.0, aggregated to H3 resolution 8 by scripts/neighborhood_dna.py
+  url: s3://overturemaps-us-west-2/release/2026-07-22.0/theme=places/type=place/
+  licence: CDLA-Permissive-2.0
+  fetch: manual
+  bytes: 27136
+  sha256: 1862ac0205c63229c76c79c993230f6d4e325d9a4b4353527f765c8190f86e03
+  stable: true
