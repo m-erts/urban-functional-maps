@@ -4,7 +4,7 @@ Rendered from `templates/linkedin.md`; the numbers come from the pipeline. Two v
 
 ## English
 
-For FOSS4G 2026 in Hiroshima I prepared a talk on open mobility data for functional-area maps. The code, the paper and the corrected slides are now public.
+For FOSS4G 2026 in Hiroshima I prepared a talk on open mobility data for functional-area maps. The session was cancelled, so I am publishing the material in full: code, paper and slides.
 
 The question: when you draw labour-market areas from open data, how much of the map is the data, how much the zoning, and how much the algorithm?
 
@@ -31,7 +31,7 @@ Code MIT, text and figures CC BY 4.0. Data: ONS, SORS, CBS, MLIT, JRC, © OpenSt
 
 ## Русский
 
-Для FOSS4G 2026 в Хиросиме я подготовила доклад об открытых данных о мобильности для карт функциональных ареалов. Код, статья и исправленные слайды теперь в открытом доступе.
+Для FOSS4G 2026 в Хиросиме я подготовила доклад об открытых данных о мобильности для карт функциональных ареалов. Сессию отменили, поэтому публикую материал целиком: код, статью и слайды.
 
 Вопрос: когда мы рисуем ареалы рынков труда по открытым данным, какая часть карты получена из данных, какая из нарезки территории, какая из алгоритма?
 

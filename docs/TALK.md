@@ -2,6 +2,7 @@
 
 **Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps**
 Accepted for the general track of FOSS4G 2026, Hiroshima; scheduled for 2026-09-03, 14:00 to 14:30 JST.
+The session was cancelled (schedule version 0.33). The slides, the paper and the code prepared for it are published in this repository.
 Speaker: Marija Ercegovac · Licence of the contribution: CC BY 4.0
 Programme: https://talks.osgeo.org/foss4g-2026 · Conference: https://2026.foss4g.org/en/program-schedule/
 

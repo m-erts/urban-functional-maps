@@ -15,7 +15,7 @@ authors:
   - family-names: Ercegovac
     given-names: Marija
     affiliation: Independent researcher
-    # orcid: "https://orcid.org/0000-0000-0000-0000"   # add your ORCID iD
+    orcid: "https://orcid.org/0009-0008-3040-5515"
 version: 1.0.0
 date-released: "2026-09-29"
 license: MIT
@@ -40,6 +40,7 @@ preferred-citation:
     - family-names: Ercegovac
       given-names: Marija
       affiliation: Independent researcher
+      orcid: "https://orcid.org/0009-0008-3040-5515"
   year: 2026
   month: 9
   notes: "Preprint, version 1.0.0, not peer reviewed"

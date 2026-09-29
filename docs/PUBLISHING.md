@@ -5,11 +5,11 @@ Three uses of the same material. Nothing in this file has been done for you: eac
 ## Before anything is sent
 
 - [ ] Read `docs/paper/paper.md` from start to end. It is a draft in your name.
-- [ ] Affiliation. The documents say "independent researcher" (`CITATION.cff`, `.zenodo.json`, `templates/paper.md`, `templates/slides.html`). Name an organisation only if the work was done there and it agrees in writing. `docs/TALK.md` and `talk/deck_v1_text.md` quote the biography and the title slide as submitted; they name the employer of that time.
-- [ ] Add your ORCID iD to `CITATION.cff` and `.zenodo.json` (field `orcid` of the creator).
+- [x] Affiliation. The documents say "independent researcher" (`CITATION.cff`, `.zenodo.json`, `templates/paper.md`, `templates/slides.html`). Name an organisation only if the work was done there and it agrees in writing. `docs/TALK.md` and `talk/deck_v1_text.md` quote the biography and the title slide as submitted; they name the employer of that time.
+- [x] ORCID iD 0009-0008-3040-5515 is in `CITATION.cff`, `.zenodo.json`, the paper and the slides.
 - [ ] Decide on the statement "Use of AI tools" at the end of the paper. Most journals require such a statement; its wording is yours.
 - [ ] Read `docs/ERRATA.md`. It states in public which numbers of the first version of the slides were wrong.
-- [ ] Check how the talk is described. README, paper, slides and announcement say "prepared for FOSS4G 2026" and claim nothing about the session itself. Change the wording in `templates/` to what happened.
+- [x] Status of the talk. README, paper, slides and announcement say that the talk was prepared for FOSS4G 2026 and accepted, and that the session was cancelled.
 
 ## A. Conference organisers
 
