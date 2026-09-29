@@ -25,6 +25,7 @@ __all__ = [
     "indicator_totals_2021",
     "read_od_2011",
     "special_totals_2011",
+    "read_od_2011_ons",
     "load_boundaries",
     "msoa_to_ttwa",
 ]
@@ -81,6 +82,18 @@ def _read_2011() -> pd.DataFrame:
 def read_od_2011() -> pd.DataFrame:
     """Census 2011 OD between MSOAs of England & Wales; pseudo-codes and other nations dropped."""
     od = prepare_od(_read_2011(), "origin", "dest", "flow")
+    return _restrict(od, params()["uk"]["unit_prefixes"])
+
+
+def read_od_2011_ons() -> pd.DataFrame:
+    """The 2011 matrix as ONS coded it for the 2011 TTWAs: people who work mainly at or from home, at
+    an offshore installation or with no fixed place are counted at their residence; workplaces
+    outside the UK are dropped (ONS methodology note on 2011 TTWAs, August 2015)."""
+    d = _read_2011()
+    codes = params()["uk"]["od_2011"]["special_codes"]
+    at_home = [c for c, label in codes.items() if label != "outside the UK"]
+    moved = d[d.dest.isin(at_home)].assign(dest=lambda x: x.origin)
+    od = prepare_od(pd.concat([d[~d.dest.isin(codes)], moved]), "origin", "dest", "flow")
     return _restrict(od, params()["uk"]["unit_prefixes"])
 
 

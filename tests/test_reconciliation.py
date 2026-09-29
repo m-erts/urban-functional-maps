@@ -90,3 +90,36 @@ def test_netherlands_regions_sum_to_the_national_row():
     assert od.origin.nunique() == od.dest.nunique() == 40
     national = df[(df.origin == "NL10") & (df.dest == "NL10")].jobs_thousands.iloc[0] * 1000
     assert abs(od.flow.sum() - national) / national < 0.005
+
+
+def test_netherlands_municipal_pairs_retain_most_jobs():
+    cache = path("interim", params()["netherlands"]["municipal"]["cache"])
+    if not cache.exists():
+        pytest.skip("CBS table 85481NED not fetched")
+    from omfm.sources import nl_cbs as nl
+
+    df = pd.read_csv(cache)
+    od, retained = nl.municipal_matrix(df)
+    assert nl.UNKNOWN not in set(od.origin) | set(od.dest)
+    assert od.origin.nunique() == 342
+    national = df[(df.dest == "NL01") & df.origin.str.startswith("GM") & (df.origin != nl.UNKNOWN)].jobs_thousands.sum()
+    assert 0.9 < od.flow.sum() / (national * 1000) <= 1.0
+    assert ((od.flow % 100).round(6) == 0).all()  # published to the nearest 100 jobs
+
+
+def test_spain_districts_and_hours():
+    cfg = params()["spain"]
+    need(cfg["districts"])
+    f = path("interim", "es_home_work_od.parquet")
+    if not f.exists():
+        pytest.skip("Spanish matrix not built")
+    from omfm.sources import es_mitma as es
+
+    raw = pd.read_parquet(f)
+    hours = pd.read_parquet(path("interim", "es_hours.parquet"))
+    od = es.home_to_work(raw, study=cfg["study"])
+    zones = set(es.load_districts().unit)
+    assert set(od.origin) <= zones and set(od.dest) <= zones
+    assert set(hours.periodo) == set(range(24))
+    assert set(raw.estudio_destino_posible) <= {"si", "no"}
+    assert 5e6 < od.flow.sum() < 2e7  # weekday trips from home to work, whole country

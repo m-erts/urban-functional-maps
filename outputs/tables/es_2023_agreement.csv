@@ -1,0 +1,2 @@
+comparison,n_candidate,n_reference,units_compared,ari_weighted,ari_units,mean_iou_weighted,median_iou,share_ref_iou_ge_0.5,weight_in_matched_area,homogeneity,completeness,v_measure
+own_vs_lma,69,219,2993,0.5934278002226591,0.35704197243964964,0.4838461510483431,0.08242094645483156,0.1278538812785388,0.8907299876885971,0.7703385848494632,0.8966214519172533,0.8286966516069738

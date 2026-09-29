@@ -49,12 +49,12 @@ Senior Geospatial Analyst at Rockup, building neighborhood analytics tools. Prev
 
 | Announced in the abstract | In this repository |
 |---|---|
-| Eurostat experimental MNO statistics | No cross-country dataset exists. The Japanese people-flow panel is used for time of day, under its right name: a panel of smartphone applications, not operator data. Spanish operator matrices are named and not processed |
-| OpenStreetMap public GPS traces | Three windows: Hiroshima, Belgrade, London |
-| Census commuting flows from Eurostat | National sources: England and Wales (pairs), Serbia (bands), Netherlands (register pairs between 40 regions) |
+| Eurostat experimental MNO statistics | No cross-country dataset exists. The Spanish national product, trips between districts from operator data with purpose and hour, is the nearest open equivalent and is analysed. The Japanese people-flow panel is used for time of day, under its right name: a panel of smartphone applications, not operator data |
+| OpenStreetMap public GPS traces | Three windows: Hiroshima, Belgrade, London. Sample statistics only; the comparison with presence and places had eleven shared cells and is not reported |
+| Census commuting flows from Eurostat | National sources: England and Wales (census pairs), the Netherlands (register pairs between municipalities, 2023; between 40 regions, 2014), Serbia (bands). Functional areas by the Coombes-Bond algorithm (R package LabourMarketAreas) and by a heuristic |
 | Copernicus Urban Atlas polygons as common reference | Not used. Each source is analysed on its own units |
 | DEGURBA classification | Degree of urbanisation from GHS-SMOD, weighted by GHS-POP population, for Serbian municipalities |
-| Day/night ratios, intraday profiles, weekday and weekend patterns | Day/night and weekday/holiday. The data have no hourly profile |
+| Day/night ratios, intraday profiles, weekday and weekend patterns | Japan: day/night and weekday/holiday; the data have no hourly profile. Spain: trips by hour of departure and purpose |
 | HDBSCAN functional signatures | Run and reported: no partition into classes. Classes are declared thresholds |
 | UMAP as a visual aid | Not used |
 | Python and PostGIS workflow, QGIS-ready layers | Python pipeline; `omfm.io.to_gpkg` and `to_postgis` write any layer |

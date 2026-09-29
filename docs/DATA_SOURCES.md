@@ -13,6 +13,9 @@ Addresses, sizes and checksums of the exact files: [`data/manifest.yaml`](../dat
 | Daily migrations, Census 2022, two workbooks | Statistical Office of the Republic of Serbia | migrants by destination band, by municipality | terms of use of SORS; source must be cited | Source: Statistical Office of the Republic of Serbia |
 | Municipal boundaries `Op_tina.shp` | Republic Geodetic Authority, GeoSrbija | polygons, register codes | terms of use of GeoSrbija; registration needed | GeoSrbija, Republic Geodetic Authority |
 | 81252NED, jobs of employees by region of residence and of work | Statistics Netherlands (CBS) | 40 x 40 COROP matrix, December 2014 | CC BY 4.0 | Source: CBS |
+| 85481NED, jobs of employees and commuting distance by region of residence and of work | Statistics Netherlands (CBS) | municipality x municipality, December 2023 | CC BY 4.0 | Source: CBS |
+| Municipal and COROP boundaries 2023 (gebiedsindelingen, generalised) | CBS, through PDOK | polygons | CC BY 4.0 | Source: CBS, PDOK |
+| Open mobility study, trips between districts, 17 to 19 and 24 to 25 October 2023; district zoning | Ministry of Transport and Sustainable Mobility of Spain (MITMS); mobile network data of Orange España, processed by Nommon | trips by origin, destination, hour, activity at both ends | Licencia de datos abiertos del Ministerio (reuse, also commercial, with attribution) | Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible (transportes.gob.es) |
 | Nationwide people-flow open data, prefecture 34 | Ministry of Land, Infrastructure, Transport and Tourism of Japan; provider Agoop Corp. | presence per 1 km mesh and per municipality | Government of Japan Standard Terms of Use 2.0 | Source: MLIT people-flow open data |
 | GHS-POP R2023A (100 m) and GHS-SMOD R2023A (1 km), epoch 2030 | European Commission, Joint Research Centre | population, settlement class | CC BY 4.0 | GHSL, European Commission JRC |
 | Public GPS traces, API v0.6 `trackpoints` | OpenStreetMap | position, time | ODbL 1.0 | © OpenStreetMap contributors |
@@ -30,16 +33,15 @@ Addresses, sizes and checksums of the exact files: [`data/manifest.yaml`](../dat
 | CBS OData | `$skip` is ignored; values are thousands of jobs; region codes are padded with spaces | the service |
 | MLIT | `from_area` is four nested rings, not an origin. Volumes are normalised. Cells under 10 people are not published | data definition document, p. 6 |
 | OSM API | 5,000 points per page; the archive changes daily | API documentation |
+| CBS 85481NED | Values in thousands with one decimal: a pair is known to the nearest 100 jobs, pairs under 50 appear as 0. The place of work is modelled. All figures are provisional. Code GM0000 is "municipality unknown" | table description; DataProperties |
+| MITMS trips | `trabajo_estudio` is work and study together; `estudio_destino_posible = si` flags a possible place of study. Trips are expanded to the resident population. 26 and 27 October 2023 are missing (incident at the operator). A method change on 1 July 2025 breaks the series | methodology report v8; data dictionary; note on the method change |
 | Overture | A release stays on the public bucket for about two months | release notes |
 
-## Named in the talk and not processed
+## Named and not processed
 
 | Source | Why it matters | Address |
 |---|---|---|
-| Spanish hourly origin-destination matrices from operator data | pairs and time in one source | https://www.transportes.gob.es/ministerio/proyectos-singulares/estudios-de-movilidad-con-big-data |
 | Multi-MNO reference pipeline of Eurostat | method and code, no data | https://github.com/eurostat/multimno |
-| CBS successor tables of 81252NED | municipal pairs | https://opendata.cbs.nl |
 | Japanese census commuting pairs | pairs for the country that has the clock | https://www.e-stat.go.jp |
-| R package LabourMarketAreas | open implementation of the European labour-market-area method | https://cran.r-project.org/package=LabourMarketAreas |
 
 The 2022 census of Serbia does not cover Kosovo\*. \* This designation is without prejudice to positions on status, and is in line with UNSCR 1244/1999 and the ICJ Opinion on the Kosovo declaration of independence.

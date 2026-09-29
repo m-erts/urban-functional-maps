@@ -204,3 +204,51 @@ def test_random_contiguous_partition_does_not_depend_on_set_order():
     a = N.random_contiguous_partition(adj, [50, 30, 21], np.random.default_rng(9))
     b = N.random_contiguous_partition(shuffled, [50, 30, 21], np.random.default_rng(9))
     assert a.equals(b)
+
+
+def test_recom_chain_keeps_contiguity_and_sizes():
+    from omfm.analysis import recom as R
+
+    adj = _grid(12)
+    del adj["island"]
+    for v in adj.values():
+        v.discard("island")
+    lab = pd.Series({u: ("W" if int(u[:2]) < 4 else "M" if int(u[:2]) < 8 else "E") for u in adj})
+    chain = R.RecomChain(adj, lab, tol=0.10, seed=3)
+    for _ in range(300):
+        chain.step()
+    cur = chain.labels()
+    rep = C.fragmentation_report(dict(cur), adj)
+    assert (rep.n_components == 1).all()
+    assert (np.abs(chain.size - chain.target) <= np.floor(0.10 * chain.target)).all()
+    assert chain.accepted > 0
+    assert not cur.equals(lab)
+
+
+def test_recom_connect_graph_joins_islands():
+    from omfm.analysis import recom as R
+
+    adj = {"a": {"b"}, "b": {"a"}, "c": set()}
+    lab = pd.Series({"a": 1, "b": 1, "c": 1})
+    g = R.connect_graph(adj, lab)
+    assert C.components(["a", "b", "c"], g) == [{"a", "b", "c"}]
+
+
+def test_recom_null_is_reproducible():
+    from omfm.analysis import recom as R
+
+    adj = _grid(8)
+    del adj["island"]
+    for v in adj.values():
+        v.discard("island")
+    lab = pd.Series({u: int(u[:2]) // 2 for u in adj})
+    rng = np.random.default_rng(0)
+    od = pd.DataFrame(
+        [(a, b, int(rng.integers(1, 9))) for a in adj for b in rng.choice(list(adj), 5)],
+        columns=["origin", "dest", "flow"],
+    )
+    od = D.prepare_od(od, "origin", "dest", "flow")
+    r1 = R.recom_null(od, lab, adj, steps=400, burn_in=200, every=20, seed=5)
+    r2 = R.recom_null(od, lab, adj, steps=400, burn_in=200, every=20, seed=5)
+    assert r1["recom_mean"] == r2["recom_mean"]
+    assert abs(r1["effective_areas_null"] - N.effective_areas(lab)) < 0.5

@@ -41,7 +41,7 @@ To give the paper its own DOI, upload `docs/paper/paper.pdf` to Zenodo as a sepa
 |---|---|---|
 | Environment and Planning B: Urban Analytics and City Science | urban analytics; publishes short papers on open data and code | word limit of the chosen article type; open access fee |
 | Transactions in GIS | GIScience methods; the two nulls and the error matrix are the core | length; novelty is judged against the regionalisation literature |
-| Computers, Environment and Urban Systems | methods applied to urban data | expects a wider empirical base than one country with pairs |
+| Computers, Environment and Urban Systems | methods applied to urban data | three countries with pairs; check that the scope of the empirical part is enough |
 | Journal of Geographical Systems | spatial analysis methods | same |
 | Regional Studies, Regional Science | open access, short articles on regional data and methods | fee |
 | Journal of Open Source Software | a DOI for the software itself, reviewed in the open | requires a record of public development and research use; a repository created this month may be asked to wait |
@@ -52,9 +52,10 @@ What reviewers will ask first, and where the paper stands:
 | Question | State |
 |---|---|
 | Is the closed form of the permutation null new? | It follows from linearity of expectation. Search the literature on modularity and on functional regions for an earlier statement before claiming priority; the paper claims use, not discovery |
-| Why not run the official algorithm? | Not done. Listed under limitations and future work |
-| One country | Dutch municipal pairs are the nearest second case |
-| Does the contiguous null sample uniformly? | No. Stated in the paper |
+| Why not run the official algorithm? | The standard Coombes-Bond algorithm (R package LabourMarketAreas) is run with the official parameters. The production code of the official areas (Fortran, Newcastle University) was not run, and the official map was cleaned by a secondary process; both are stated |
+| One country | Three countries with pairs: England and Wales, the Netherlands (municipal pairs 2023), Spain (operator trips 2023) |
+| Does the contiguous null sample uniformly? | No. The recombination chain samples the spanning-tree distribution; stated, with convergence diagnostics |
+| Were the reviews of the first version answered? | `docs/paper/response_to_reviewers.md`, point by point |
 
 ## C. LinkedIn
 

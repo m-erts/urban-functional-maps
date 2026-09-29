@@ -1,6 +1,8 @@
 # Every input file: where it comes from, its licence, and the checksum of the copy behind the
 # published numbers. `stable: false` marks files assembled from an API at download time; their
 # checksum identifies our copy and is not checked against a new download.
+# CBS 85481NED (municipal pairs, December 2023) is fetched through OData into data/interim by
+# omfm.sources.nl_cbs.fetch_municipal. 26 October 2023 is not published by MITMS (an incident at the operator).
 # Paths are relative to data/raw unless `root: repo`. CBS 81252NED is fetched through OData into
 # data/interim by omfm.sources.nl_cbs and compared with the national total in the tests.
 accessed: "2026-08-17 to 2026-09-29"
@@ -207,3 +209,109 @@ files:
   bytes: 27136
   sha256: 1862ac0205c63229c76c79c993230f6d4e325d9a4b4353527f765c8190f86e03
   stable: true
+- path: ES/20231017_Viajes_distritos.csv.gz
+  source: MITMS open mobility study, trips between districts, 20231017
+  url: https://movilidad-opendata.mitma.es/estudios_basicos/por-distritos/viajes/ficheros-diarios/2023-10/20231017_Viajes_distritos.csv.gz
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 192267830
+  sha256: f90403943a2cb82111ddc3fdbaffb2490e8d3dd055bd4445ad990fa0203e481f
+  stable: true
+- path: ES/20231018_Viajes_distritos.csv.gz
+  source: MITMS open mobility study, trips between districts, 20231018
+  url: https://movilidad-opendata.mitma.es/estudios_basicos/por-distritos/viajes/ficheros-diarios/2023-10/20231018_Viajes_distritos.csv.gz
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 194334432
+  sha256: 2f569505f2aa7f2df6cdb2d63f50406e382237484317f40eb87e451f7c50d780
+  stable: true
+- path: ES/20231019_Viajes_distritos.csv.gz
+  source: MITMS open mobility study, trips between districts, 20231019
+  url: https://movilidad-opendata.mitma.es/estudios_basicos/por-distritos/viajes/ficheros-diarios/2023-10/20231019_Viajes_distritos.csv.gz
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 190915615
+  sha256: 8ad99b5804cc42bbbea6a8ba048fbe3f3a46513f725d388c6570181ec617d067
+  stable: true
+- path: ES/20231024_Viajes_distritos.csv.gz
+  source: MITMS open mobility study, trips between districts, 20231024
+  url: https://movilidad-opendata.mitma.es/estudios_basicos/por-distritos/viajes/ficheros-diarios/2023-10/20231024_Viajes_distritos.csv.gz
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 191105551
+  sha256: e08edf78aa8b490ebcc34bcc0928fcfad3ac0bc3e1547f0e2d3ddc16ce617a9e
+  stable: true
+- path: ES/20231025_Viajes_distritos.csv.gz
+  source: MITMS open mobility study, trips between districts, 20231025
+  url: https://movilidad-opendata.mitma.es/estudios_basicos/por-distritos/viajes/ficheros-diarios/2023-10/20231025_Viajes_distritos.csv.gz
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 175852365
+  sha256: 35fa000339f7b5ebcb88baa4d413f924046a8878177e94a193c2e361b2720302
+  stable: true
+- path: ES/zonificacion_distritos/zonificacion_distritos.shp
+  source: MITMS district zoning
+  url: https://movilidad-opendata.mitma.es/zonificacion/zonificacion_distritos/zonificacion_distritos.shp
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 23410552
+  sha256: c480cd2a50618570b2650001191581b2280395f998d820e48ca5163266cb3cbb
+  stable: true
+- path: ES/zonificacion_distritos/zonificacion_distritos.shx
+  source: MITMS district zoning
+  url: https://movilidad-opendata.mitma.es/zonificacion/zonificacion_distritos/zonificacion_distritos.shx
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 31372
+  sha256: 659aeb5cb370fbe888c9e1fdb7729ff62074f64062faae211fa406eecb1a0ea2
+  stable: true
+- path: ES/zonificacion_distritos/zonificacion_distritos.dbf
+  source: MITMS district zoning
+  url: https://movilidad-opendata.mitma.es/zonificacion/zonificacion_distritos/zonificacion_distritos.dbf
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 316695
+  sha256: 60579e68741bfbbf8f4b15b6fb26bd73c3a54ed5e245ab6e825392fe756bcf3b
+  stable: true
+- path: ES/zonificacion_distritos/zonificacion_distritos.prj
+  source: MITMS district zoning
+  url: https://movilidad-opendata.mitma.es/zonificacion/zonificacion_distritos/zonificacion_distritos.prj
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 393
+  sha256: 45bb4e50d6458324cd89be2b9de22dcda8a1e2ac57c97513deba0b812918cc7c
+  stable: true
+- path: ES/zonificacion_distritos/zonificacion_distritos.cpg
+  source: MITMS district zoning
+  url: https://movilidad-opendata.mitma.es/zonificacion/zonificacion_distritos/zonificacion_distritos.cpg
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 5
+  sha256: 3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824
+  stable: true
+- path: ES/zonificacion_distritos/nombres_distritos.csv
+  source: MITMS district names
+  url: https://movilidad-opendata.mitma.es/zonificacion/zonificacion_distritos/nombres_distritos.csv
+  licence: Licencia de datos abiertos del Ministerio de Transportes y Movilidad Sostenible (reuse with attribution)
+  fetch: http
+  bytes: 124729
+  sha256: 42cbb4cb0fc7ade30be42157302562163cb301eee5a73037339533b22c122446
+  stable: true
+- path: NL/gemeente_gegeneraliseerd_2023.geojson
+  source: CBS gebiedsindelingen via PDOK OGC API, gemeente_gegeneraliseerd, 2023
+  url: https://api.pdok.nl/cbs/gebiedsindelingen/ogc/v1/collections/gemeente_gegeneraliseerd/items?jaarcode=2023
+  licence: CC-BY-4.0
+  fetch: manual
+  stable: false
+  note: Fetched by omfm.sources.nl_cbs.fetch_boundaries.
+  bytes: 1809944
+  sha256: f4afd781dcab353949384ae109e1120f6ed3c6b9fa470d6a369b54e796d0e18e
+- path: NL/coropgebied_gegeneraliseerd_2023.geojson
+  source: CBS gebiedsindelingen via PDOK OGC API, coropgebied_gegeneraliseerd, 2023
+  url: https://api.pdok.nl/cbs/gebiedsindelingen/ogc/v1/collections/coropgebied_gegeneraliseerd/items?jaarcode=2023
+  licence: CC-BY-4.0
+  fetch: manual
+  stable: false
+  note: Fetched by omfm.sources.nl_cbs.fetch_boundaries.
+  bytes: 786514
+  sha256: a83b0724c5733e10a1645d03635384f28317ccb9ce15602ec0f89e6062443194

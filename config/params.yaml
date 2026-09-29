@@ -90,6 +90,32 @@ netherlands:
     min_job_ratio: 1.0
     merge_threshold: 0.10
     attach_threshold: 0.15
+  crs: "EPSG:28992"
+  municipal:                    # successor table with municipal pairs
+    table: "85481NED"
+    period: "2023MM12"
+    cache: nl_gm_od_2023.csv    # under paths.interim
+    pdok: "https://api.pdok.nl/cbs/gebiedsindelingen/ogc/v1"
+    year: 2023
+
+spain:
+  days: ["20231017", "20231018", "20231019", "20231024", "20231025"]   # 26 October 2023 is not published
+  districts: ES/zonificacion_distritos/zonificacion_distritos.shp
+  names: ES/zonificacion_distritos/nombres_distritos.csv
+  crs: "EPSG:3042"              # ETRS89 / UTM 30N, as published
+  study: "no"                   # keep destinations that are not a possible place of study
+
+lma:                            # Coombes-Bond parameters of the official Travel to Work Areas 2011
+  min_size: 3500
+  min_sc: 0.667
+  target_size: 25000
+  target_sc: 0.75
+
+recom:                          # recombination chain for the contiguous null
+  steps: 200000
+  burn_in: 100000
+  every: 1000
+  tolerance: 0.05
 
 japan:
   prefecture: 34                # Hiroshima

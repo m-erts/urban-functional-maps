@@ -78,6 +78,10 @@ def uk() -> dict:
     naive = src.read_od_2021("naive")
     for yr, m in od.items():
         m.to_parquet(path("interim", f"uk_od_{yr}.parquet", mkdir=True))
+    od[2011].to_csv(path("interim", "uk_od_2011.csv"), index=False)  # input of r/run_lma.R
+    ons = src.read_od_2011_ons()  # home workers at their residence, as ONS coded it for the 2011 TTWAs
+    ons.to_parquet(path("interim", "uk_od_2011_ons.parquet"))
+    ons.to_csv(path("interim", "uk_od_2011_ons.csv"), index=False)  # input of r/run_lma.R
     out["uk_msoa_n"] = len(set(od[2021].origin) | set(od[2021].dest))
     out["uk_msoa_n_2011"] = len(set(od[2011].origin) | set(od[2011].dest))
     out["uk_fixed_2021"], out["uk_fixed_2011"] = float(od[2021].flow.sum()), float(od[2011].flow.sum())
@@ -784,14 +788,28 @@ def osm() -> dict:
     return out
 
 
+def _pairs(name: str):
+    def run():
+        from . import cases_pairs
+
+        return getattr(cases_pairs, name)()
+
+    run.__name__ = name
+    return run
+
+
 CASES = {
     "uk": uk,
     "uk_sweep": uk_sweep,
     "uk_cases": uk_cases,
+    "uk_lma": _pairs("lma_uk"),
     "rs": serbia,
     "nl": netherlands,
+    "nl23": _pairs("netherlands_municipal"),
+    "es": _pairs("spain"),
     "jp": japan,
     "osm": osm,
+    "decomposition": _pairs("decomposition"),
 }
 
 

@@ -15,6 +15,9 @@ from . import style as st
 
 __all__ = ["all_figures"]
 
+AREA_TINTS = ["#FEF3C7", "#FCD34D", "#FDE68A", "#F59E0B", "#FFFBEB", "#FBBF24"]
+AREA_TINTS_BLUE = ["#DBEAFE", "#93C5FD", "#BFDBFE", "#60A5FA", "#EFF6FF", "#3B82F6"]
+
 
 # ------------------------------------------------------------------------------- helpers
 def _plt():
@@ -247,68 +250,84 @@ def uk_null_model() -> None:
 
 
 def uk_decomposition() -> None:
+    """Scale, contiguity and placement for every partition of the three countries with pairs."""
     plt = _plt()
-    d = _tab("uk_contiguous_null.csv")
-    names = {"contiguous": "own rules", "official_ttwa_2011": "official TTWA"}
-    d["label"] = [f"{y}, {names[p_]}\n{a} areas" for y, p_, a in zip(d.year, d.partition, d.areas)]
-    fig = plt.figure(figsize=(10.5, 4.9))
+    d = _tab("decomposition.csv")
+    names = {
+        "uk_2011_own": "England & Wales 2011, heuristic",
+        "uk_2011_lma": "England & Wales 2011, Coombes-Bond",
+        "uk_2011_lma_ons": "England & Wales 2011, Coombes-Bond, ONS coding",
+        "uk_2011_official": "England & Wales 2011, official TTWA",
+        "uk_2021_own": "England & Wales 2021, heuristic",
+        "uk_2021_official": "England & Wales 2021, official TTWA",
+        "nl_2023_own": "Netherlands 2023, heuristic",
+        "nl_2023_lma": "Netherlands 2023, Coombes-Bond",
+        "nl_2023_corop": "Netherlands 2023, COROP (1970)",
+        "es_2023_own": "Spain 2023, heuristic",
+        "es_2023_lma": "Spain 2023, Coombes-Bond",
+    }
+    d = d[d.partition.isin(names)].copy()
+    d["order"] = d.partition.map({k: i for i, k in enumerate(names)})
+    d = d.sort_values("order").reset_index(drop=True)
+    d["label"] = [
+        f"{names[p_]}\n{a} areas, {e:.0f} effective" for p_, a, e in zip(d.partition, d.areas, d.effective_areas)
+    ]
+    fig = plt.figure(figsize=(11.0, 1.9 + 0.62 * len(d)))
     _head(
         fig,
         "Most of the score is scale and contiguity",
-        "Self-containment of four partitions of England and Wales, split into what the sizes of the areas give, "
-        "what any contiguous zoning of those sizes adds, and what the position of the boundaries adds.",
+        "Self-containment split into what the sizes of the areas give (random relabelling), what any contiguous "
+        "zoning of those sizes adds (recombination chain) and what the position of the boundaries adds.",
     )
-    ax = fig.add_axes([0.17, 0.27, 0.79, 0.47])
+    top = 1 - 1.25 / fig.get_figheight()
+    bottom = 1.15 / fig.get_figheight()
+    ax = fig.add_axes([0.30, bottom, 0.66, top - bottom])
     y = np.arange(len(d))
     gap = 0.004
     parts = [
-        ("from_scale", st.RULE, "scale: random relabelling, same sizes", st.INK),
-        ("from_contiguity", st.RAMP["census"][1], "contiguity: random contiguous partitions", st.INK),
-        ("from_placement", st.CENSUS, "placement: position of the boundaries", "white"),
+        ("from_scale", st.RULE, "scale", st.INK),
+        ("from_contiguity", st.RAMP["census"][1], "contiguity", st.INK),
+        ("from_placement", st.CENSUS, "placement", "white"),
     ]
     left = np.zeros(len(d))
     for col, colour, label, ink in parts:
         w = d[col].to_numpy()
-        ax.barh(y, w - gap, left=left, height=0.34, color=colour, label=label)
+        ax.barh(y, w - gap, left=left, height=0.56, color=colour, label=label)
         for i in range(len(d)):
-            ax.text(
-                left[i] + w[i] / 2,
-                y[i],
-                f"{w[i]:.3f}",
-                ha="center",
-                va="center",
-                fontsize=8.8,
-                family=st.MONO,
-                color=ink,
-            )
+            if w[i] > 0.045:
+                ax.text(
+                    left[i] + w[i] / 2,
+                    y[i],
+                    f"{w[i]:.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=8.4,
+                    family=st.MONO,
+                    color=ink,
+                )
         left += w
-    ax.errorbar(
-        d.contiguous_null,
-        y - 0.25,
-        xerr=[d.contiguous_null - d.contiguous_min, d.contiguous_max - d.contiguous_null],
-        fmt="none",
-        ecolor=st.INK2,
-        elinewidth=1,
-        capsize=3,
-    )
     for i, r in enumerate(d.itertuples()):
-        ax.text(r.observed + 0.008, i, f"{r.observed:.3f}", va="center", fontsize=9, family=st.MONO, color=st.INK)
-    ax.set_yticks(y, d.label)
-    ax.set_ylim(len(d) - 0.5, -0.6)
-    ax.set_xlim(0, 0.86)
+        ax.text(r.observed + 0.008, i, f"{r.observed:.3f}", va="center", fontsize=8.8, family=st.MONO, color=st.INK)
+    country = d.partition.str[:2].to_numpy()
+    for i in range(1, len(d)):
+        if country[i] != country[i - 1]:
+            ax.axhline(i - 0.5, color=st.RULE, linewidth=0.8)
+    ax.set_yticks(y, d.label, fontsize=8.4)
+    ax.set_ylim(len(d) - 0.5, -0.5)
+    ax.set_xlim(0, 0.95)
     ax.set_xlabel("self-containment")
     ax.grid(axis="y", visible=False)
-    ax.legend(loc="upper left", bbox_to_anchor=(-0.2, -0.20), ncol=3, handlelength=1.4, columnspacing=1.6)
+    ax.legend(loc="lower left", bbox_to_anchor=(0.0, 1.0), ncol=3, handlelength=1.4, columnspacing=1.6)
     _foot(
         fig,
-        f"Whisker above each bar: range of {int(d.runs.iloc[0])} random contiguous partitions. "
-        + st.ATTRIBUTION["ons"]
-        + ". WU01EW and ODWP01EW, commuters with a fixed workplace.",
+        f"Recombination chain: {int(d.samples.iloc[0])} samples after burn-in, area sizes within "
+        f"{params()['recom']['tolerance'] * 100:.0f} % of the partition's. ONS coding: people who work at home, "
+        "offshore or with no fixed place counted at their residence. Sources: ONS (OGL v3); CBS 85481NED "
+        "(CC BY 4.0); Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible.",
     )
     _save(fig, "uk_decomposition")
 
 
-# ------------------------------------------------------------------ UK maps
 def _uk_layers(year: int):
     from ..sources import uk_census as src
 
@@ -320,10 +339,26 @@ def _uk_layers(year: int):
     return g, parts
 
 
-def _outline(ax, g, labels: pd.Series, fill=None, lw=0.45, color=None) -> None:
+def _tints(dis, palette) -> list:
+    """Greedy colouring of touching areas, so that neighbours never share a tint."""
+    from libpysal.weights import Queen
+
+    w = Queen.from_dataframe(dis.reset_index(drop=True), use_index=False, silence_warnings=True)
+    order = sorted(w.neighbors, key=lambda i: -len(w.neighbors[i]))
+    col: dict = {}
+    for i in order:
+        used = {col[j] for j in w.neighbors[i] if j in col}
+        col[i] = next(c for c in range(len(palette)) if c not in used) if len(used) < len(palette) else 0
+    return [palette[col[i]] for i in range(len(dis))]
+
+
+def _outline(ax, g, labels: pd.Series, fill=None, lw=0.45, color=None, tint=None) -> None:
+    """Areas of ``labels`` dissolved from the unit polygons ``g``. ``tint``: a list of colours for
+    neighbouring areas (greedy colouring); otherwise one fill colour."""
     d = g.merge(labels.rename("area"), left_on="unit", right_index=True, how="inner")
     dis = d.dissolve("area")
-    dis.plot(ax=ax, facecolor=fill or st.RAMP["census"][0], edgecolor=color or st.INK2, linewidth=lw)
+    face = _tints(dis, tint) if tint else (fill or st.RAMP["census"][0])
+    dis.plot(ax=ax, facecolor=face, edgecolor=color or st.INK2, linewidth=lw)
 
 
 def uk_areas_map() -> None:
@@ -393,47 +428,61 @@ def uk_ttwa_triptych() -> None:
 
     plt, gold = _plt(), _golden()
     g, parts = _uk_layers(2011)
+    for key, name in [("lma", "uk_2011_areas_lma.csv"), ("lma_ons", "uk_2011_areas_lma_ons.csv")]:
+        if path("tables", name).exists():
+            d = pd.read_csv(path("tables", name), dtype=str)
+            parts[key] = pd.Series(d.area.to_numpy(), index=d.unit.to_numpy())
     ref = src.msoa_to_ttwa(2011).set_index("unit").ttwa
     tt = gpd.read_file(path("raw", params()["uk"]["ttwa_2011"])).to_crs(params()["uk"]["crs"])
     code = next(c for c in tt.columns if c.upper().startswith("TTWA11CD"))
     tt = tt[tt[code].isin(set(ref))]
-    fig = plt.figure(figsize=(12.5, 7.0))
+    panels = [("contiguous", "Two-rule heuristic", "contiguous")]
+    if "lma" in parts:
+        panels.append(("lma", "Coombes-Bond, commuters only", "lma"))
+    else:
+        panels.append(("ttwa_greedy", "Validity rule, greedy merge", "ttwa_greedy"))
+    if "lma_ons" in parts:
+        panels.append(("lma_ons", "Coombes-Bond, home workers at home", "lma_ons"))
+    panels.append((None, "Official Travel to Work Areas 2011", None))
+    n = len(panels)
+    fig = plt.figure(figsize=(3.3 * n + 0.6, 6.6))
     _head(
         fig,
-        "The same matrix, the same published criterion, three maps",
-        "England and Wales, Census 2011. Agreement with the official areas is counted in employed residents.",
+        f"One criterion, {({3: 'three', 4: 'four', 5: 'five'}).get(n, n)} maps",
+        "England and Wales, Census 2011, MSOA units. The two Coombes-Bond maps differ only in where people who work "
+        "at home are counted. Agreement with the official areas is counted in employed residents.",
     )
-    panels = [
-        ("contiguous", "Own two-rule delimitation", st.RAMP["census"][0]),
-        ("ttwa_greedy", "Validity rule enforced by greedy merge", st.RAMP["census"][0]),
-        (None, "Official Travel to Work Areas 2011", st.SURFACE),
-    ]
-    for i, (key, title, fill) in enumerate(panels):
-        ax = fig.add_axes([0.01 + 0.33 * i, 0.08, 0.32, 0.70])
+    w = 0.98 / n
+    for i, (key, title, gk) in enumerate(panels):
+        ax = fig.add_axes([0.01 + w * i, 0.08, w - 0.01, 0.70])
         _map_axes(ax)
         if key:
-            _outline(ax, g, parts[key], fill=fill)
-            n = parts[key].nunique()
-            k = "contiguous" if key == "contiguous" else key
-            sub = f"{n} areas   ARI {gold[f'uk_ari_{k}_2011']:.2f}   mean IoU {gold[f'uk_iou_{k}_2011']:.2f}"
+            _outline(ax, g, parts[key], fill=st.RAMP["census"][0])
+            sub = (
+                f"{parts[key].nunique()} areas   ARI {gold[f'uk_ari_{gk}_2011']:.2f}\n"
+                f"mean IoU {gold[f'uk_iou_{gk}_2011']:.2f}"
+            )
         else:
-            tt.plot(ax=ax, facecolor=fill, edgecolor=st.REFERENCE, linewidth=0.45)
-            sub = f"{len(tt)} areas touch England or Wales"
-        b = g.total_bounds
-        ax.set_xlim(b[0] - 5_000, b[2] + 5_000)
-        ax.set_ylim(b[1] - 5_000, b[3] + 5_000)
-        ax.set_title(title, fontsize=10, pad=20)
-        ax.text(0.0, 1.005, sub, transform=ax.transAxes, fontsize=8.5, color=st.INK2, family=st.MONO, va="bottom")
+            tt.plot(ax=ax, facecolor=st.SURFACE, edgecolor=st.REFERENCE, linewidth=0.45)
+            sub = f"{len(tt)} areas touch England or Wales\n(built from smaller units)"
+        bb = g.total_bounds
+        ax.set_xlim(bb[0] - 5_000, bb[2] + 5_000)
+        ax.set_ylim(bb[1] - 5_000, bb[3] + 5_000)
+        ax.set_title(title, fontsize=10, pad=30)
+        ax.text(0.0, 1.005, sub, transform=ax.transAxes, fontsize=8.3, color=st.INK2, family=st.MONO, va="bottom")
     _foot(
         fig,
-        st.ATTRIBUTION["ons"] + ". WU01EW; MSOA 2011 BGC; TTWA 2011 super-generalised boundaries. ARI = adjusted "
-        "Rand index, IoU = intersection over union with the best-matching official area.",
+        st.ATTRIBUTION["ons"] + ". WU01EW; MSOA 2011 BGC; TTWA 2011 super-generalised boundaries. Coombes-Bond: R "
+        "package LabourMarketAreas 3.4 with the parameters of the official areas (3,500 and 66.7 %, 25,000 and 75 %); "
+        "'home workers at home' counts people working at or from home, offshore or with no fixed place at their "
+        "residence, as ONS did for the official areas. ARI = adjusted Rand index; IoU = intersection over union with "
+        "the best-matching official area.",
     )
     _save(fig, "uk_trap3_three_maps", vector=False)
 
 
 def uk_iou() -> None:
-    plt = _plt()
+    plt, gold = _plt(), _golden()
     fig = plt.figure(figsize=(10.5, 5.0))
     _head(
         fig,
@@ -462,13 +511,25 @@ def uk_iou() -> None:
     ax.set_ylabel("cumulative share of employed residents")
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.set_title("2011, contiguous own delimitation")
+    ax.set_title("2011, two-rule heuristic")
 
     ax2 = fig.add_axes([0.69, 0.26, 0.28, 0.52])
     a = ag[ag.partition.isin(["contiguous", "ttwa_greedy", "ttwa_dissolution"])].copy()
-    names = {"contiguous": "own rules", "ttwa_greedy": "rule + greedy merge", "ttwa_dissolution": "rule + dissolution"}
+    lma_file = path("tables", "uk_lma_agreement.csv")
+    if lma_file.exists():
+        lm = pd.read_csv(lma_file)
+        lm = lm[lm.comparison.isin(["lma", "lma_ons"])].assign(partition=lambda x: x.comparison, year=2011)
+        a = pd.concat([a, lm[["partition", "year", "n_candidate", "ari_weighted", "mean_iou_weighted"]]])
+    names = {
+        "contiguous": "heuristic",
+        "ttwa_greedy": "rule + greedy merge",
+        "ttwa_dissolution": "rule + dissolution",
+        "lma": "Coombes-Bond",
+        "lma_ons": "Coombes-Bond, ONS coding",
+    }
+    order = {k: i for i, k in enumerate(names)}
     a["label"] = a.partition.map(names) + " " + a.year.astype(str)
-    a = a.sort_values(["year", "partition"]).reset_index(drop=True)
+    a = a.assign(o=a.partition.map(order)).sort_values(["year", "o"]).reset_index(drop=True)
     y = np.arange(len(a))
     ax2.hlines(
         y,
@@ -501,11 +562,13 @@ def uk_iou() -> None:
     ax2.invert_yaxis()
     ax2.set_xlim(0.1, 0.8)
     ax2.grid(axis="y", visible=False)
-    ax2.set_title("Agreement with 173 official areas")
+    ax2.set_title(f"Agreement with {gold['uk_ttwa_official_touching_ew_2011']} official areas")
     ax2.legend(loc="upper left", bbox_to_anchor=(-0.75, -0.16), ncol=2)
     _foot(
         fig,
-        "Official areas are assigned to MSOAs by plurality of LSOAs; 4.6 % of MSOAs are cut by an official boundary.",
+        "Official areas are assigned to MSOAs by plurality of LSOAs; "
+        f"{gold['uk_msoa_cut_by_ttwa_2011'] / gold['uk_msoa_n_2011'] * 100:.1f} % of MSOAs are cut. ONS coding: home "
+        "workers counted at their residence.",
     )
     _save(fig, "uk_trap3_agreement")
 
@@ -862,7 +925,7 @@ def nl_corop() -> None:
     _head(
         fig,
         "Pairs exist, aggregated to the answer",
-        f"Netherlands, register jobs December 2014, {len(d)} COROP regions drawn in 1970 as commuter basins. "
+        f"Netherlands, register jobs December 2014, {len(d)} COROP regions designed in 1970 as nodal regions. "
         f"{int((d.sc_supply >= 0.75).sum())} of {len(d)} still hold 75 % of their employed residents.",
     )
     ax = fig.add_axes([0.30, 0.08, 0.66, 0.78])
@@ -886,6 +949,117 @@ def nl_corop() -> None:
         f"{gold['nl_areas']} areas: an effect of the resolution, not a finding.",
     )
     _save(fig, "nl_corop_self_containment")
+
+
+def nl_2023_maps() -> None:
+    from ..sources import nl_cbs as src
+
+    plt, gold = _plt(), _golden()
+    g = src.load_boundaries("gemeente_gegeneraliseerd", params()["netherlands"]["municipal"]["year"])
+    cp = src.load_boundaries("coropgebied_gegeneraliseerd", params()["netherlands"]["municipal"]["year"])
+    own = pd.read_csv(path("tables", "nl_2023_areas_contiguous.csv"), dtype=str).set_index("unit").area
+    d = pd.read_csv(path("tables", "nl_2023_areas_lma.csv"), dtype=str)
+    lma = pd.Series(d.area.to_numpy(), index=d.unit.to_numpy())
+    fig = plt.figure(figsize=(12.0, 6.4))
+    _head(
+        fig,
+        "Do the regions of 1970 still hold their commuters?",
+        "Netherlands, employee jobs by municipality of residence and of work, December 2023. Shades: delimited "
+        "areas. Dark lines: the 40 COROP regions.",
+    )
+    panels = [
+        (lma, f"Coombes-Bond: {gold['nl23_lma_areas']} areas, ARI with COROP {gold['nl23_ari_lma_corop']:.2f}"),
+        (own, f"Two-rule heuristic: {gold['nl23_own_areas']} areas, ARI {gold['nl23_ari_own_corop']:.2f}"),
+        (None, f"COROP regions: {gold['nl23_corop_pass'] * 100:.0f} % hold 75 % of residents' jobs"),
+    ]
+    for i, (lab, title) in enumerate(panels):
+        ax = fig.add_axes([0.01 + 0.33 * i, 0.10, 0.32, 0.70])
+        _map_axes(ax)
+        if lab is not None:
+            _outline(ax, g, lab, lw=0.5, color=st.CANVAS, tint=AREA_TINTS)
+            cp.boundary.plot(ax=ax, color=st.INK, linewidth=0.9)
+        else:
+            cp.plot(ax=ax, facecolor=st.SURFACE, edgecolor=st.REFERENCE, linewidth=0.6)
+        ax.set_title(title, fontsize=9.5)
+    _foot(
+        fig,
+        st.ATTRIBUTION["cbs"].replace("81252NED", "85481NED") + "; boundaries CBS/PDOK 2023. Jobs are rounded to "
+        "the nearest 100 per pair; the place of work is modelled by CBS.",
+    )
+    _save(fig, "nl_2023_maps", vector=False)
+
+
+def es_maps() -> None:
+    from ..sources import es_mitma as src
+
+    plt, gold = _plt(), _golden()
+    g = src.load_districts()
+    own = pd.read_csv(path("tables", "es_2023_areas_contiguous.csv"), dtype=str).set_index("unit").area
+    d = pd.read_csv(path("tables", "es_2023_areas_lma.csv"), dtype=str)
+    lma = pd.Series(d.area.to_numpy(), index=d.unit.to_numpy())
+    spain = g[g.unit.str.match(r"^[0-9]")]  # the NUTS-3 regions of France and Portugal are not drawn
+    mainland = spain.cx[-50_000:1_200_000, 3_900_000:4_900_000]
+    fig = plt.figure(figsize=(12.0, 6.2))
+    _head(
+        fig,
+        "Spain: the same two methods on operator data",
+        f"Trips from home to work or study, mean of {gold['es_days']} weekdays, October 2023, "
+        f"{gold['es_zones_spain']:,} districts. Grey: districts in no area.",
+    )
+    for i, (lab, title) in enumerate(
+        [
+            (lma, f"Coombes-Bond: {gold['es_lma_areas']} areas"),
+            (own, f"Two-rule heuristic: {gold['es_own_areas']} areas"),
+        ]
+    ):
+        ax = fig.add_axes([0.02 + 0.49 * i, 0.09, 0.47, 0.72])
+        _map_axes(ax)
+        mainland.plot(ax=ax, facecolor=st.RULE, edgecolor=st.RULE, linewidth=0.15)
+        _outline(ax, mainland, lab, lw=0.3, color=st.CANVAS, tint=AREA_TINTS_BLUE)
+        ax.set_title(title, fontsize=10)
+    _foot(
+        fig,
+        "Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible (transportes.gob.es); mobile "
+        f"network data of Orange España. Mainland and Balearic Islands. Agreement of the two maps: ARI "
+        f"{gold['es_ari_own_lma']:.2f}.",
+    )
+    _save(fig, "es_maps", vector=False)
+
+
+def es_hourly() -> None:
+    plt, gold = _plt(), _golden()
+    h = _tab("es_hourly.csv").set_index("periodo")
+    pairs = [
+        ("casa > trabajo_estudio", "home to work or study", st.RAMP["eurostat"][3], "-"),
+        ("trabajo_estudio > casa", "work or study to home", st.RAMP["eurostat"][4], "--"),
+        ("casa > frecuente", "home to other frequent place", st.RAMP["eurostat"][2], "-"),
+        ("frecuente > casa", "other frequent place to home", st.RAMP["eurostat"][2], "--"),
+    ]
+    fig = plt.figure(figsize=(10.5, 4.8))
+    _head(
+        fig,
+        "Pairs, purpose and the hour in one open file",
+        f"Spain, trips by hour of departure and activity at both ends, mean of {gold['es_days']} weekdays, "
+        "October 2023, millions.",
+    )
+    ax = fig.add_axes([0.08, 0.14, 0.62, 0.64])
+    for col, label, colour, ls in pairs:
+        if col in h:
+            ax.plot(h.index, h[col] / 1e6, color=colour, linestyle=ls, label=label)
+    ax.set_xticks(range(0, 24, 3), [f"{x:02d}:00" for x in range(0, 24, 3)])
+    ax.set_xlim(0, 23)
+    ax.set_ylabel("trips per hour, millions")
+    ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0))
+    fig.text(
+        0.73,
+        0.40,
+        f"{gold['es_commute_share_6_9'] * 100:.0f} % of trips from home to work\nor study start between "
+        f"06:00 and 09:59;\npeak at {gold['es_commute_peak_hour']:02d}:00",
+        fontsize=9,
+        color=st.INK2,
+    )
+    _foot(fig, "Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible (transportes.gob.es).")
+    _save(fig, "es_hourly")
 
 
 # ------------------------------------------------------------------ Japan
@@ -1116,17 +1290,18 @@ def jp_clusterability() -> None:
 
 # ------------------------------------------------------------------ OSM traces
 def osm_traces() -> None:
-    plt, gold = _plt(), _golden()
+    """Sample size of the trace windows. The rank comparison of version 1 is not drawn (11 shared cells)."""
+    plt = _plt()
     d = _tab("osm_summary.csv")
     names = {"hiroshima_centre": "Hiroshima", "belgrade_centre": "Belgrade", "london_soho": "London (Soho)"}
-    fig = plt.figure(figsize=(11.5, 5.4))
+    fig = plt.figure(figsize=(10.5, 4.6))
     _head(
         fig,
         "200,000 points, a few thousand minutes",
         "OSM public GPS traces in three city-centre windows. The point count is the download cap; the sample "
         "is the number of distinct minutes.",
     )
-    ax = fig.add_axes([0.10, 0.27, 0.28, 0.50])
+    ax = fig.add_axes([0.13, 0.17, 0.40, 0.58])
     y = np.arange(len(d))
     ax.barh(y, d.points, height=0.26, color=st.RAMP["osm"][1])
     ax.barh(y, d.unique_minutes, height=0.26, color=st.OSM)
@@ -1147,7 +1322,7 @@ def osm_traces() -> None:
     ax.grid(axis="y", visible=False)
     ax.set_title("Distinct minutes (dark) inside the points (light)", fontsize=9.5)
 
-    ax2 = fig.add_axes([0.45, 0.27, 0.20, 0.50])
+    ax2 = fig.add_axes([0.62, 0.17, 0.33, 0.58])
     ax2.barh(y, d.top_cell_share, height=0.26, color=st.OSM)
     for i, r in enumerate(d.itertuples()):
         ax2.text(
@@ -1164,33 +1339,7 @@ def osm_traces() -> None:
     ax2.set_xticks([0, 0.5, 1.0], ["0", "50 %", "100 %"])
     ax2.grid(axis="y", visible=False)
     ax2.set_title("Share of points in the busiest H3 cell", fontsize=9.5)
-
-    ax3 = fig.add_axes([0.74, 0.27, 0.23, 0.50])
-    j = _tab("osm_hiroshima_three_way.csv")
-    r1, r2 = j.traces.rank(), j.presence.rank()
-    ax3.plot(
-        j.places.rank(),
-        r1,
-        "s",
-        color=st.REFERENCE,
-        markersize=6.5,
-        markeredgecolor=st.CANVAS,
-        label=f"mapped places (Overture), rho {gold['osm_hij_rho_traces_places']:+.2f}",
-    )
-    ax3.plot(
-        r2,
-        r1,
-        "o",
-        color=st.EUROSTAT,
-        markersize=6.5,
-        markeredgecolor=st.CANVAS,
-        label=f"daytime presence (MLIT), rho {gold['osm_hij_rho_traces_presence']:+.2f}",
-    )
-    ax3.set_xlabel("rank of cell by the other source")
-    ax3.set_ylabel("rank of cell by trace points")
-    ax3.set_title(f"Hiroshima, {gold['osm_hij_three_way_n']} shared cells", fontsize=9.5)
-    ax3.legend(loc="upper left", bbox_to_anchor=(-0.12, -0.24), ncol=1, handletextpad=0.3)
-    _foot(fig, st.ATTRIBUTION["osm"] + ". " + st.ATTRIBUTION["overture"] + ". H3 resolution 8.")
+    _foot(fig, st.ATTRIBUTION["osm"] + ". H3 resolution 8.")
     _save(fig, "osm_traces")
 
 
@@ -1206,6 +1355,9 @@ FIGURES = [
     rs_maps,
     rs_urbanisation,
     nl_corop,
+    nl_2023_maps,
+    es_maps,
+    es_hourly,
     jp_daynight,
     jp_signatures,
     jp_clusterability,

@@ -20,6 +20,7 @@ TARGETS = {
     "templates/paper.md": "docs/paper/paper.src.md",
     "templates/slides.html": "docs/slides/index.html",
     "templates/linkedin.md": "docs/outreach/linkedin.md",
+    "templates/response.md": "docs/paper/response_to_reviewers.md",
 }
 PLACEHOLDER = re.compile(r"\{\{\s*([a-z0-9_]+)\s*(?:([*/])\s*([0-9.e]+))?\s*(?::([^}]+))?\}\}")
 
@@ -34,7 +35,11 @@ def render(text: str, values: dict) -> str:
             v = v * float(num) if op == "*" else v / float(num)
         return format(v, spec) if spec else str(v)
 
-    return PLACEHOLDER.sub(sub, text)
+    out = PLACEHOLDER.sub(sub, text)
+    left = re.findall(r"\{\{[^}]*\}\}", out)
+    if left:
+        raise ValueError(f"placeholders the renderer cannot read: {sorted(set(left))[:5]}")
+    return out
 
 
 def main(check: bool) -> int:

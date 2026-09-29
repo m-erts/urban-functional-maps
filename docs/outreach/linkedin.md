@@ -1,53 +1,62 @@
 # LinkedIn announcement
 
-Rendered from `templates/linkedin.md`; the numbers come from the pipeline. Two versions: English, and Russian for a Russian-speaking audience. Attach `docs/figures/uk_decomposition.png` as the image.
+Rendered from `templates/linkedin.md`; the numbers come from the pipeline. Plain text, as it is pasted into LinkedIn (no markdown). Under 3,000 characters with hashtags. Image: `docs/figures/uk_trap3_three_maps.png` (the four maps answer the hook). The repository link can move to the first comment; the post reads without it. Hook alternatives are at the end.
 
 ## English
 
-For FOSS4G 2026 in Hiroshima I prepared a talk on open mobility data for functional-area maps. The session was cancelled, so I am publishing the material in full: code, paper and slides.
+Same census. Same algorithm. Same parameters as the official Travel to Work Areas. 59 labour-market areas, or 95.
+The difference is where you count 5.0 million people who work at home.
 
-The question: when you draw labour-market areas from open data, how much of the map is the data, how much the zoning, and how much the algorithm?
+For FOSS4G 2026 in Hiroshima I prepared a second talk: which open mobility data can you trust for functional-area maps? The session was cancelled, so I am publishing everything: code, paper, slides. The first draft lacked the standard algorithm, a proper null model and a third country. All three are in now.
 
-Four results, all reproducible from the repository.
+What it found:
 
-1. One category of a code list. The 2021 census of England and Wales codes 12.6 million people who work at home with workplace = residence. Leave them in the matrix and local working rises from 0.093 to 0.506. The file format gives no warning.
+1️⃣ Coding. The 2021 census of England and Wales puts 12.6M people who work at home on the diagonal of the commuting matrix. The share of people working in their own unit jumps from 0.093 to 0.506. The file gives no warning; the code list does.
 
-2. Why a plain overlay misleads. Self-containment, the usual score of a functional area, grows with the size of the areas. Under random relabelling of units its expected value is d + (1 − d)·h, where d is the share of flows that never leave their unit and h is the concentration of area sizes. At district level this null gives 69 % of the score. At neighbourhood level, 19 %.
+2️⃣ Most of the score is not the algorithm. Self-containment = scale + contiguity + placement. Scale has a closed form, d + (1 − d)·h. Contiguity comes from a recombination chain on spanning trees. Across 11 maps of England and Wales, the Netherlands and Spain, placement, the part that depends on where the boundaries run, is 0.06 to 0.22.
 
-3. Contiguity does most of the rest. Of the 0.696 scored by 235 areas on 7,264 units, 0.13 is scale, 0.43 is what any contiguous zoning of those sizes holds, and 0.13 is the position of the boundaries. For the official Travel to Work Areas the last part is 0.19. Algorithms should be compared on that part.
+3️⃣ No construction wins everywhere. Coombes-Bond (R package LabourMarketAreas) places boundaries best in Spain, ties in the Netherlands and trails a simple heuristic in England and Wales.
 
-4. A similar count of areas is not a similar map. 197 delimited areas against 173 official ones agree at an adjusted Rand index of 0.54. Enforcing the published validity rule lowers it to 0.46. Agreement is measured with an error matrix counted in employed residents, with intersection over union per official area.
+4️⃣ Old regions can be tested. On 2023 municipal pairs, 45 % of the Dutch COROP regions designed in 1970 pass the TTWA validity rule.
 
-The same audit covers Serbian census bands, Dutch register pairs, the Japanese people-flow panel and OpenStreetMap GPS traces. In the first version of the slides it found 10 of 56 numbers to correct; the list is in the repository.
+5️⃣ Spain publishes pairs, purpose AND the hour in one open file: 11.3M trips a day from home to work or study, peaking at 07:00.
 
-What the pipeline does: reads each source with its code list, reconciles with published totals, delimits, repairs contiguity, runs both nulls, builds the error matrix, and writes every number that the paper and the slides then print.
+The trap: comparing raw self-containment across unit systems. For British districts the random baseline alone is 69 % of the score.
 
-Repository: https://github.com/m-erts/urban-functional-maps
-Paper: https://github.com/m-erts/urban-functional-maps/blob/main/docs/paper/paper.md
+Every number in the paper and the slides is written by the pipeline and checked by tests. Code, paper and slides: https://github.com/m-erts/urban-functional-maps
 
-Code MIT, text and figures CC BY 4.0. Data: ONS, SORS, CBS, MLIT, JRC, © OpenStreetMap contributors, Overture Maps Foundation.
+Question for people who build labour-market areas: where does your pipeline put people who work from home?
 
-#FOSS4G #GIS #OpenData #UrbanAnalytics #MAUP #Reproducibility
+#FOSS4G2026 #FOSS4G #OSGeo #GIS #Geospatial #SpatialDataScience #OpenData #Census #Mobility #MAUP #LabourMarketAreas #Reproducibility
+
+Hook alternatives:
+
+- Your commuting matrix has 12.6 million people on its diagonal who never commute. / The 2021 census of England and Wales put them there, and the file does not say so.
+- The official Travel to Work Areas of 2011: 173. The same algorithm on the open matrix: 59. / Here is where the other areas went.
 
 ## Русский
 
-Для FOSS4G 2026 в Хиросиме я подготовила доклад об открытых данных о мобильности для карт функциональных ареалов. Сессию отменили, поэтому публикую материал целиком: код, статью и слайды.
+Та же перепись. Тот же алгоритм. Те же параметры, что у официальных Travel to Work Areas. 59 ареалов рынка труда или 95.
+Разница в том, где посчитать 5.0 млн человек, которые работают из дома.
 
-Вопрос: когда мы рисуем ареалы рынков труда по открытым данным, какая часть карты получена из данных, какая из нарезки территории, какая из алгоритма?
+Для FOSS4G 2026 в Хиросиме я подготовила второй доклад: каким открытым данным о мобильности можно доверять при построении функциональных ареалов. Сессию отменили, поэтому публикую всё целиком: код, статью и слайды. В первой версии не хватало стандартного алгоритма, корректной нуль-модели и третьей страны. Теперь всё это есть.
 
-Четыре результата. Все воспроизводятся из репозитория.
+Что получилось:
 
-1. Одна строка в справочнике кодов. В переписи Англии и Уэльса 2021 года 12.6 млн человек, работающих из дома, записаны с местом работы, равным месту жительства. Если оставить их в матрице, доля работающих в своей единице растёт с 0.093 до 0.506. Формат файла об этом не предупреждает.
+1️⃣ Кодировка. Перепись Англии и Уэльса 2021 года ставит 12.6 млн человек, работающих из дома, на диагональ матрицы поездок. Доля работающих в своей единице растёт с 0.093 до 0.506. Файл об этом не предупреждает, справочник кодов предупреждает.
 
-2. Почему простое наложение вводит в заблуждение. Самодостаточность, обычная оценка функционального ареала, растёт с размером ареалов. При случайной перестановке меток её ожидание равно d + (1 − d)·h, где d это доля потоков, не покидающих свою единицу, а h это концентрация размеров ареалов. На уровне районов эта нуль-модель даёт 69 % оценки. На уровне кварталов 19 %.
+2️⃣ Большая часть оценки не зависит от алгоритма. Самодостаточность = масштаб + смежность + размещение. Для масштаба есть формула, d + (1 − d)·h. Смежность даёт цепь рекомбинации на остовных деревьях. На 11 картах Англии и Уэльса, Нидерландов и Испании размещение, то есть часть, которая зависит от положения границ, составляет от 0.06 до 0.22.
 
-3. Большую часть остального даёт смежность. Из 0.696, которые набирают 235 ареалов на 7,264 единицах, 0.13 приходится на масштаб, 0.43 на любую связную нарезку тех же размеров и 0.13 на положение границ. У официальных Travel to Work Areas последняя часть равна 0.19. Сравнивать алгоритмы нужно по ней.
+3️⃣ Нет конструкции, которая выигрывает везде. Алгоритм Кумбса и Бонда (R-пакет LabourMarketAreas) лучше всех размещает границы в Испании, наравне с эвристикой в Нидерландах и уступает ей в Англии и Уэльсе.
 
-4. Близкое число ареалов не означает близкую карту. 197 построенных ареалов и 173 официальных согласуются на уровне скорректированного индекса Рэнда 0.54. После применения опубликованного правила валидности он падает до 0.46. Согласие измеряется матрицей ошибок в занятых жителях и пересечением по объединению (IoU) для каждого официального ареала.
+4️⃣ Старые регионы можно проверить. На парах муниципалитетов 2023 года правилу валидности TTWA отвечают 45 % регионов COROP, спроектированных в 1970 году.
 
-Та же проверка сделана для сербской переписи, нидерландского регистра, японской панели присутствия и GPS-треков OpenStreetMap. В первой версии слайдов она нашла 10 чисел из 56, которые нужно исправить. Список лежит в репозитории.
+5️⃣ Испания публикует пары, цель поездки И час в одном открытом файле: 11.3 млн поездок в день из дома на работу или учёбу, пик в 07:00.
 
-Репозиторий: https://github.com/m-erts/urban-functional-maps
-Статья: https://github.com/m-erts/urban-functional-maps/blob/main/docs/paper/paper.md
+Ловушка: сравнивать самодостаточность на разных сетках единиц. Для британских районов случайная нарезка сама по себе даёт 69 % оценки.
 
-Код MIT, текст и рисунки CC BY 4.0.
+Каждое число в статье и на слайдах записывает конвейер, и его проверяют тесты. Код, статья и слайды: https://github.com/m-erts/urban-functional-maps
+
+Вопрос к тем, кто строит ареалы рынков труда: куда ваш конвейер ставит людей, которые работают из дома?
+
+#FOSS4G2026 #FOSS4G #OSGeo #GIS #Geospatial #SpatialDataScience #OpenData #Census #Mobility #MAUP #LabourMarketAreas #Reproducibility
