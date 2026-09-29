@@ -1,0 +1,91 @@
+# All parameters named on the v1 slides. Values marked `TODO` were not stated in the deck
+# and must be recovered from legacy code or decided (and then documented in docs/03_METHODOLOGY.md).
+
+project:
+  seed: 20260903          # TODO: legacy seed unknown; fix one and keep it
+  crs_storage: "EPSG:4326"
+
+osm_traces:
+  api: "https://api.openstreetmap.org/api/0.6/trackpoints"   # deck footer omitted /api
+  points_per_page: 5000   # API constant → 40 pages × 5000 = the "200k pts" cap on slide 3
+  pages_per_box: 40
+  windows:                # TODO: exact bboxes unknown (square windows ~4–5 km, see slide 3 figure)
+    belgrade:  {bbox: TODO, note: "central Belgrade; median trace year 2014"}
+    hiroshima: {bbox: TODO, note: "central Hiroshima; two campaigns 2019, 2026"}
+    third_window: {bbox: TODO, note: "slide 2 says three windows, 2.4–10k unique minutes; only two shown"}
+  effective_sample_unit: "unique minute"   # distinct timestamps truncated to minute
+  h3_resolution: 8
+
+overture:
+  release: "2026-07"      # TODO: exact release tag, e.g. 2026-07-xx.0
+  theme: places
+  h3_resolution: 8
+  correlation: spearman   # on shared cells (both counts > 0) — TODO confirm
+
+uk:
+  od_2021: "ODWP01EW"     # MSOA × MSOA, Census 2021 (21 March 2021)
+  od_2011: "WU01EW"
+  exclude_2021_place_of_work_categories: [1, 3]   # 1 = mainly at/from home, 3 = no fixed place (verify code list)
+  exclude_2011_codes: ["OD0000001", "OD0000003"]
+  units: MSOA2021_BGC
+  n_units_2021: 7264
+  crs: "EPSG:27700"
+  delimitation:
+    core_quantile_external_inflow: 0.95
+    core_merge_threshold: 0.10
+    attach_threshold: 0.15
+    attach_iterative: true
+    contiguity: queen
+  null_model:
+    runs: 60
+    preserve: "area size distribution (units per area)"
+  ttwa_rule:
+    min_workers: 3500
+    sc_at_min: 0.75
+    max_workers_for_scale: 25000
+    sc_at_max: 0.667
+    self_containment: two_sided   # min(supply-side, demand-side)
+    interpolation: linear          # TODO verify exact Coombes & Bond (2008) trade-off form
+    merge: naive_strongest_link    # the "naive merge" of slide 8
+
+serbia:
+  source: "SORS Popis 2022 — daily migrations (дневне миграције)"
+  n_municipalities: 168
+  crs: "EPSG:32634"
+  exclude: ["Kosovo*"]     # census does not cover Kosovo*; UNSCR 1244 footnote in all outputs
+  purposes: [work, education]   # education = pupils + students merged by SORS
+  urbanisation:
+    source: "GHS-SMOD R2023A + GHS-POP R2023A, Mollweide 1 km"
+    epoch: TODO            # 2020? 2025?
+    weighting: population  # NOT area share — area share gave spurious r = −0.28
+  name_matching: ["exact", "pattern"]   # Cyrillic names broken by shapefile encoding
+
+netherlands:
+  od_table: "81252NED"     # 2006–2014, jobs by residence × workplace region
+  successors: ["83628NED", "85481NED"]
+  year: 2014               # December 2014
+  regions: COROP           # 40
+  pass_threshold: 0.75
+
+japan:
+  source: "MLIT 全国の人流オープンデータ (1kmメッシュ、市区町村単位発地別)"
+  provider: "Agoop (per G空間情報センター) — verify in データ定義書; NOT NTT docomo"
+  mesh: "JIS X 0410 3rd-level (1 km)"
+  years: [2019, 2020, 2021]
+  study_area: "Hiroshima agglomeration / Hiroshima city"
+  daynight_map: {month: 2019-10, daytype: weekday}
+  suppression_below: 10
+  signatures:
+    profile: "2019 monthly mean"
+    axes: ["log2(weekday day / weekday night)", "log2(holiday day / weekday day)"]
+    threshold_ratio: 1.5
+    min_people_per_cell: 100
+    class_precedence: TODO   # order of rules when a cell passes two thresholds
+  hdbscan:
+    min_cluster_size: TODO   # "honest settings" → 100 % noise; document the sweep
+    min_samples: TODO
+
+spain_mitma:              # NEW — not in v1 deck
+  version: 2               # 2022–present, hourly
+  study_area: Madrid
+  tool: "spanishoddata (R) or direct download from movilidad-opendata.mitma.es"

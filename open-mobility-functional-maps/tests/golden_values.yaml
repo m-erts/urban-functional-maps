@@ -1,0 +1,58 @@
+# Every number shown on stage in deck v1 (3 Sep 2026). status: unverified | reproduced | differs
+# tol = absolute tolerance. `fn` = the analysis function expected to produce it (to implement).
+- {id: osm_bgd_points,        slide: 3,  value: 200000, tol: 0,     unit: points, fn: sources.osm_traces.fetch_window, note: "API cap 40×5000", status: unverified}
+- {id: osm_bgd_unique_min,    slide: 3,  value: 5695,   tol: 50,    unit: minutes, fn: analysis.osm.unique_minutes, status: unverified}
+- {id: osm_bgd_median_year,   slide: 3,  value: 2014,   tol: 0,     fn: analysis.osm.median_year, status: unverified}
+- {id: osm_bgd_top_cell,      slide: 3,  value: 0.35,   tol: 0.01,  fn: analysis.osm.top_cell_share, status: unverified}
+- {id: osm_bgd_spearman,      slide: 3,  value: 0.67,   tol: 0.02,  fn: analysis.osm.spearman_vs_places, status: unverified}
+- {id: osm_hij_unique_min,    slide: 3,  value: 2395,   tol: 50,    fn: analysis.osm.unique_minutes, status: unverified}
+- {id: osm_hij_top_cell,      slide: 3,  value: 0.51,   tol: 0.01,  fn: analysis.osm.top_cell_share, status: unverified}
+- {id: osm_hij_spearman,      slide: 3,  value: 0.80,   tol: 0.02,  fn: analysis.osm.spearman_vs_places, status: unverified}
+- {id: uk_msoa_n,             slide: 5,  value: 7264,   tol: 0,     fn: sources.uk_census.load_msoa, status: unverified}
+- {id: uk_fixed_2021,         slide: 5,  value: 15.1e6, tol: 0.05e6, fn: sources.uk_census.clean_od, status: unverified}
+- {id: uk_fixed_2011,         slide: 6,  value: 21.6e6, tol: 0.05e6, fn: sources.uk_census.clean_od, status: unverified}
+- {id: uk_home_2021,          slide: 6,  value: 12.6e6, tol: 0.05e6, note: "45 % of workers", status: unverified}
+- {id: uk_home_2011,          slide: 6,  value: 4.9e6,  tol: 0.05e6, note: "19 % of workers", status: unverified}
+- {id: uk_diag_2011,          slide: 6,  value: 0.103,  tol: 0.002, fn: analysis.selfcontainment.unit_diagonal_share, status: unverified}
+- {id: uk_diag_2021_naive,    slide: 6,  value: 0.506,  tol: 0.002, status: unverified}
+- {id: uk_diag_2021_clean,    slide: 6,  value: 0.093,  tol: 0.002, status: unverified}
+- {id: uk_areas_flows_only,   slide: 5,  value: 235,    tol: 0,     fn: analysis.delimitation.delimit, status: unverified}
+- {id: uk_areas_noncontig,    slide: 5,  value: 26,     tol: 0,     status: unverified}
+- {id: uk_islands_after_fix,  slide: 5,  value: 3,      tol: 0,     fn: analysis.delimitation.repair_contiguity, status: unverified}
+- {id: uk_sc_2011_areas,      slide: 7,  value: 0.740,  tol: 0.005, fn: analysis.selfcontainment.partition_sc, status: unverified}
+- {id: uk_sc_2011_random,     slide: 7,  value: 0.157,  tol: 0.005, fn: analysis.nullmodel.shuffle_sc, status: unverified}
+- {id: uk_sc_2021_areas,      slide: 7,  value: 0.695,  tol: 0.005, status: unverified}
+- {id: uk_sc_2021_random,     slide: 7,  value: 0.130,  tol: 0.005, status: unverified}
+- {id: uk_excess_msoa,        slide: 7,  value: 0.58,   tol: 0.01,  note: "≈0.740−0.157 (2011); state year", status: unverified}
+- {id: uk_district_observed,  slide: 7,  value: 0.961,  tol: 0.005, status: unverified}
+- {id: uk_district_random,    slide: 7,  value: 0.798,  tol: 0.005, status: unverified}
+- {id: uk_ttwa_official,      slide: 8,  value: 167,    tol: 0,     note: "2011 TTWAs in E&W — verify", status: unverified}
+- {id: uk_ttwa_naive_merge,   slide: 8,  value: 67,     tol: 0,     fn: analysis.ttwa.enforce_rule_naive, status: unverified}
+- {id: uk_london_workers,     slide: 8,  value: 6.1e6,  tol: 0.1e6, status: unverified}
+- {id: rs_municipalities,     slide: 9,  value: 168,    tol: 0,     status: unverified}
+- {id: rs_workers,            slide: 9,  value: 795779, tol: 0,     status: unverified}
+- {id: rs_sc_national,        slide: 10, value: 0.503,  tol: 0.001, status: unverified}
+- {id: rs_sc_median_work,     slide: 10, value: 0.53,   tol: 0.005, status: unverified}
+- {id: rs_sc_median_edu,      slide: 10, value: 0.65,   tol: 0.005, status: unverified}
+- {id: rs_gap_median,         slide: 10, value: 0.08,   tol: 0.005, note: "median of per-municipality gaps", status: unverified}
+- {id: rs_r_edu_work,         slide: 10, value: 0.82,   tol: 0.01,  status: unverified}
+- {id: rs_single_settlement,  slide: 10, value: 8,      tol: 0,     status: unverified}
+- {id: rs_r_gap_urb_pop,      slide: 10, value: 0.03,   tol: 0.02,  status: unverified}
+- {id: rs_r_gap_urb_area,     slide: 10, value: -0.28,  tol: 0.02,  note: "negative control", status: unverified}
+- {id: nl_jobs_2014,          slide: 11, value: 7.54e6, tol: 0.01e6, status: unverified}
+- {id: nl_sc_median,          slide: 11, value: 0.66,   tol: 0.005, status: unverified}
+- {id: nl_share_pass,         slide: 11, value: 0.20,   tol: 0.0,   note: "8 of 40", status: unverified}
+- {id: nl_areas,              slide: 11, value: 2,      tol: 0,     status: unverified}
+- {id: nl_sc_delfzijl,        slide: 11, value: 0.45,   tol: 0.005, status: unverified}
+- {id: nl_sc_zvl,             slide: 11, value: 0.88,   tol: 0.005, status: unverified}
+- {id: jp_local_share_ward,   slide: 12, value: 0.27,   tol: 0.005, status: unverified}
+- {id: jp_ratio_max,          slide: 12, value: 7.9,    tol: 0.1,   status: unverified}
+- {id: jp_ratio_min,          slide: 12, value: 0.13,   tol: 0.01,  status: unverified}
+- {id: jp_sig_mixed,          slide: 13, value: 155,    tol: 0,     fn: analysis.signatures.classify, status: unverified}
+- {id: jp_sig_residential,    slide: 13, value: 102,    tol: 0,     status: unverified}
+- {id: jp_sig_leisure,        slide: 13, value: 50,     tol: 0,     status: unverified}
+- {id: jp_sig_office,         slide: 13, value: 115,    tol: 0,     status: unverified}
+- {id: jp_hdbscan_noise,      slide: 13, value: 1.0,    tol: 0.0,   status: unverified}
+- {id: jp_volume_drift,       slide: 14, value: 0.003,  tol: 0.001, note: "max |Δ total| across 2019–2021", status: unverified}
+- {id: jp_local_share_2019,   slide: 14, value: 0.632,  tol: 0.002, status: unverified}
+- {id: jp_local_share_2020,   slide: 14, value: 0.677,  tol: 0.002, status: unverified}

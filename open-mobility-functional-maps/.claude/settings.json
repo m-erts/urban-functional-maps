@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["Bash(pytest:*)", "Bash(make:*)", "Bash(python scripts/*)", "Bash(ruff:*)", "Bash(git status)", "Bash(git diff:*)"]
+  }
+}

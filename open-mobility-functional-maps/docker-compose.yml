@@ -1,0 +1,12 @@
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment: {POSTGRES_USER: omfm, POSTGRES_PASSWORD: omfm, POSTGRES_DB: omfm}
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  pipeline:
+    build: .
+    depends_on: [postgis]
+    volumes: ["./data:/app/data", "./outputs:/app/outputs"]
+    environment: {OMFM_PG: "postgresql://omfm:omfm@postgis:5432/omfm"}
+volumes: {pgdata: {}}

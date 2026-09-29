@@ -1,0 +1,27 @@
+# Pin exact versions after first successful `make all` (conda env export --no-builds > environment.lock.yml)
+name: omfm
+channels: [conda-forge]
+dependencies:
+  - python=3.12
+  - pandas
+  - numpy
+  - geopandas
+  - pyproj
+  - shapely
+  - libpysal
+  - h3-py>=4
+  - python-duckdb
+  - scikit-learn
+  - hdbscan
+  - scipy
+  - matplotlib
+  - requests
+  - gpxpy
+  - pyyaml
+  - sqlalchemy
+  - psycopg2
+  - pytest
+  - ruff
+  - r-base          # for Istat LabourMarketAreas comparison
+  - pip
+  - pip: ["-e .[dev]"]
