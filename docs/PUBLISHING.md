@@ -5,7 +5,7 @@ Three uses of the same material. Nothing in this file has been done for you: eac
 ## Before anything is sent
 
 - [ ] Read `docs/paper/paper.md` from start to end. It is a draft in your name.
-- [ ] Confirm the affiliation (Rockup) in `CITATION.cff`, `.zenodo.json`, `templates/paper.md` and `templates/slides.html`, or replace it. An employer may need to agree to be named.
+- [ ] Affiliation. The documents say "independent researcher" (`CITATION.cff`, `.zenodo.json`, `templates/paper.md`, `templates/slides.html`). Name an organisation only if the work was done there and it agrees in writing. `docs/TALK.md` and `talk/deck_v1_text.md` quote the biography and the title slide as submitted; they name the employer of that time.
 - [ ] Add your ORCID iD to `CITATION.cff` and `.zenodo.json` (field `orcid` of the creator).
 - [ ] Decide on the statement "Use of AI tools" at the end of the paper. Most journals require such a statement; its wording is yours.
 - [ ] Read `docs/ERRATA.md`. It states in public which numbers of the first version of the slides were wrong.

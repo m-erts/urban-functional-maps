@@ -1,6 +1,6 @@
 ---
 title: "Open mobility data for functional-area maps: what each source leaves out, and how much of the result is scale, contiguity and algorithm"
-author: "Marija Ercegovac, Rockup"
+author: "Marija Ercegovac, independent researcher"
 date: 2026-09-29
 version: "1.0.0 (preprint, not peer reviewed)"
 license: CC BY 4.0

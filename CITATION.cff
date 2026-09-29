@@ -14,7 +14,7 @@ abstract: >-
 authors:
   - family-names: Ercegovac
     given-names: Marija
-    affiliation: Rockup
+    affiliation: Independent researcher
     # orcid: "https://orcid.org/0000-0000-0000-0000"   # add your ORCID iD
 version: 1.0.0
 date-released: "2026-09-29"
@@ -39,7 +39,7 @@ preferred-citation:
   authors:
     - family-names: Ercegovac
       given-names: Marija
-      affiliation: Rockup
+      affiliation: Independent researcher
   year: 2026
   month: 9
   notes: "Preprint, version 1.0.0, not peer reviewed"

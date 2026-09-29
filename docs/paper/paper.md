@@ -1,6 +1,6 @@
 # Open mobility data for functional-area maps: what each source leaves out, and how much of the result is scale, contiguity and algorithm
 
-Marija Ercegovac, Rockup. Version 1.0.0 (preprint, not peer reviewed). CC BY 4.0.
+Marija Ercegovac, independent researcher. Version 1.0.0 (preprint, not peer reviewed). CC BY 4.0.
 
 **Prepared for:** FOSS4G 2026, Hiroshima, as the talk “Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps”. **Code, parameters and every number of this text:** <https://github.com/m-erts/urban-functional-maps>
 
