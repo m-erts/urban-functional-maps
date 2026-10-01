@@ -8,7 +8,7 @@ bibliography: references.bib
 link-citations: true
 ---
 
-**Prepared for:** FOSS4G 2026, Hiroshima, as the talk "Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps". The talk was accepted and the session was cancelled; the material is published here in full.
+**Prepared for:** FOSS4G 2026, Hiroshima, as the talk "Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps". The talk was accepted; the author was unable to present it, and the material is published here in full.
 **Code, parameters and every number of this text:** <https://github.com/m-erts/urban-functional-maps>
 
 ## Abstract

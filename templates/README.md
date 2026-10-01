@@ -6,7 +6,7 @@
 
 Open mobility data for functional-area maps: what each source leaves out, and how much of a result is scale, contiguity and algorithm.
 
-Pipeline, paper and slides for the talk *Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps*, prepared for FOSS4G 2026, Hiroshima. The talk was accepted and the session was cancelled; the material is published here in full.
+Pipeline, paper and slides for the talk *Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps*, prepared for FOSS4G 2026, Hiroshima. The talk was accepted; the author was unable to present it, and the material is published here in full.
 
 | | |
 |---|---|

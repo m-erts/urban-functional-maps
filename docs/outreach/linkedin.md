@@ -7,7 +7,7 @@ Rendered from `templates/linkedin.md`; the numbers come from the pipeline. Plain
 Same census. Same algorithm. Same parameters as the official Travel to Work Areas. 59 labour-market areas, or 95.
 The difference is where you count 5.0 million people who work at home or have no fixed workplace.
 
-For FOSS4G 2026 in Hiroshima I prepared a second talk: which open mobility data can you trust for functional-area maps? The session was cancelled, so I am publishing everything: code, paper, slides. The first draft lacked the standard algorithm, a proper null model and a third country. All three are in now.
+For FOSS4G 2026 in Hiroshima I prepared a second talk: which open mobility data can you trust for functional-area maps? I couldn't give it for health reasons, so I am publishing everything: code, paper, slides. The first draft lacked the standard algorithm, a proper null model and a third country. All three are in now.
 
 What it found:
 
@@ -39,7 +39,7 @@ Hook alternatives:
 Та же перепись. Тот же алгоритм. Те же параметры, что у официальных Travel to Work Areas. 59 ареалов рынка труда или 95.
 Разница в том, где посчитать 5.0 млн человек, которые работают из дома или без постоянного места работы.
 
-Для FOSS4G 2026 в Хиросиме я подготовила второй доклад: каким открытым данным о мобильности можно доверять при построении функциональных ареалов. Сессию отменили, поэтому публикую всё целиком: код, статью и слайды. В первой версии не хватало стандартного алгоритма, корректной нуль-модели и третьей страны. Теперь всё это есть.
+Для FOSS4G 2026 в Хиросиме я подготовила второй доклад: каким открытым данным о мобильности можно доверять при построении функциональных ареалов. Выступить я не смогла из-за здоровья, поэтому публикую всё целиком: код, статью и слайды. В первой версии не хватало стандартного алгоритма, корректной нуль-модели и третьей страны. Теперь всё это есть.
 
 Что получилось:
 

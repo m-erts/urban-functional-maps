@@ -9,7 +9,7 @@ Three uses of the same material. Nothing in this file has been done for you: eac
 - [x] ORCID iD 0009-0008-3040-5515 is in `CITATION.cff`, `.zenodo.json`, the paper and the slides.
 - [ ] Decide on the statement "Use of AI tools" at the end of the paper. Most journals require such a statement; its wording is yours.
 - [ ] Read `docs/ERRATA.md`. It states in public which numbers of the first version of the slides were wrong.
-- [x] Status of the talk. README, paper, slides and announcement say that the talk was prepared for FOSS4G 2026 and accepted, and that the session was cancelled.
+- [x] Status of the talk. README, paper, slides and announcement say that the talk was prepared for FOSS4G 2026 and accepted, and that the author was unable to present it.
 
 ## A. Conference organisers
 

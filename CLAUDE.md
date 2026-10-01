@@ -5,7 +5,7 @@ Project memory for Claude Code.
 ## What this is
 
 Pipeline, paper and slides on open mobility data for functional-area maps, prepared for FOSS4G 2026, Hiroshima.
-The talk was accepted and the session was cancelled. The documents say so; never write that the talk was given.
+The talk was accepted and the author could not present it; the organisers did not cancel it. The documents say "the author was unable to present it"; never write that the talk was given or that the session was cancelled.
 Repository: https://github.com/m-erts/urban-functional-maps. Author: Marija Ercegovac.
 
 ## Rules
