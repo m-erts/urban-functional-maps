@@ -1,0 +1,34 @@
+# Exact versions the published numbers were produced with (macOS arm64, 2026-09-29).
+#   conda env create -f environment.yml && conda activate omfm
+name: omfm
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  # spatial C extensions: GDAL / GEOS / PROJ come in through these
+  - geopandas=1.1.4
+  - shapely=2.1.2
+  - pyproj=3.7.2
+  - pyogrio=0.13.0
+  - rasterio=1.5.1
+  - libpysal=4.15.0
+  - h3-py=4.5.0
+  - python-duckdb=1.5.5
+  # numerics
+  - numpy=2.3.5
+  - pandas=2.3.3
+  - pyarrow=21.0.0
+  - scipy=1.16.3
+  - scikit-learn=1.7.2
+  - networkx=3.5
+  - matplotlib-base=3.10.6
+  # input and output
+  - pyyaml=6.0.3
+  - requests=2.32.5
+  - openpyxl=3.1.5
+  # development
+  - pytest=8.4.2
+  - ruff
+  - pip
+  - pip:
+      - -e .

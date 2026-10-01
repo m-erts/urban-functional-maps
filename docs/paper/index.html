@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Marija Ercegovac, independent researcher, ORCID 0009-0008-3040-5515" />
+  <meta name="dcterms.date" content="2026-09-29" />
+  <title>Open mobility data for functional-area maps</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
+  <link rel="stylesheet" href="paper.css" />
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Open mobility data for functional-area maps: what each
+source leaves out, and how much of the result is scale, contiguity and
+algorithm</h1>
+<p class="author">Marija Ercegovac, independent researcher, ORCID
+0009-0008-3040-5515</p>
+<p class="date">2026-09-29</p>
+</header>
+<p><strong>Prepared for:</strong> FOSS4G 2026, Hiroshima, as the talk
+“Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban
+Function Maps”. The talk was accepted; the author was unable to present
+it, and the material is published here in full. <strong>Code, parameters
+and every number of this text:</strong> <a
+href="https://github.com/m-erts/urban-functional-maps"
+class="uri">https://github.com/m-erts/urban-functional-maps</a></p>
+<h2 id="abstract">Abstract</h2>
+<p>Functional areas are drawn from flows of people, and open sources of
+such flows differ in what they publish: origin-destination pairs, the
+purpose of the trip, the time of day. We audit six open sources in five
+countries. For the three that publish pairs between fine units (census
+commuting in England and Wales, register jobs between Dutch
+municipalities, and trips between Spanish districts inferred from mobile
+network data) we measure how much of a functional-area map comes from
+the coding of the source, from the scale and contiguity of the zoning,
+and from the construction that places the boundaries. (1) In the 2021
+census of England and Wales 12.6 million people without a commute are
+coded with workplace equal to residence; keeping them raises the share
+of within-unit commuting from 0.093 to 0.506. (2) The self-containment
+expected when units are relabelled at random has a closed form, <span
+class="math inline">\(d+(1-d)h\)</span>, where <span
+class="math inline">\(d\)</span> is the diagonal share of the unit
+system and <span class="math inline">\(h\)</span> the Simpson
+concentration of area sizes. A recombination Markov chain on spanning
+trees gives a second baseline: contiguous partitions with the same
+sizes. Over 11 partitions in three countries, the part of
+self-containment that depends on where the boundaries run is 0.06 to
+0.22. Scale takes the largest part on Dutch municipalities, contiguity
+on English neighbourhoods. (3) The Coombes-Bond algorithm with the
+parameters of the official Travel to Work Areas gives 59 areas on the
+open 2011 matrix of commuters. Counting people who work at home or have
+no fixed workplace at their residence, as the statistical office did,
+raises this to 95; the official map has 173. Of the Dutch COROP regions
+designed in 1970, 45 % meet the same validity rule on the pairs of 2023.
+(4) Temporal profiles of presence in Hiroshima form one cloud, so
+functional classes drawn from them are declared, not found. Every number
+in the text is produced by an open pipeline. Of the 56 numbers in the
+first version of the conference slides, 46 are reproduced and 10 are
+corrected.</p>
+<p><strong>Keywords:</strong> functional urban areas; travel-to-work
+areas; labour market areas; modifiable areal unit problem;
+self-containment; null model; recombination Markov chain;
+origin-destination data; mobile phone data; reproducibility</p>
+<h2 id="introduction">1 Introduction</h2>
+<p>Labour-market areas and functional urban areas are partitions of a
+territory into zones inside which most people both live and work.
+Official products are built from census commuting matrices with
+published rules. Examples are the Travel to Work Areas (TTWA) of the
+United Kingdom <span class="citation"
+data-cites="coombes1986 coombes2008">(<a href="#ref-coombes1986"
+role="doc-biblioref">Coombes et al. 1986</a>; <a href="#ref-coombes2008"
+role="doc-biblioref">Coombes and Bond 2008</a>)</span>, the EU-OECD
+functional urban areas <span class="citation"
+data-cites="oecd2012 dijkstra2019">(<a href="#ref-oecd2012"
+role="doc-biblioref">OECD 2012</a>; <a href="#ref-dijkstra2019"
+role="doc-biblioref">Dijkstra et al. 2019</a>)</span>, and the labour
+market areas that European statistical offices build with the TTWA
+method <span class="citation"
+data-cites="franconi2017 eurostat2020lma">(<a href="#ref-franconi2017"
+role="doc-biblioref">Franconi et al. 2017</a>; <a
+href="#ref-eurostat2020lma" role="doc-biblioref">Eurostat
+2020</a>)</span>. Mobile phone records added non-work trips and time of
+day to this work <span class="citation"
+data-cites="ratti2010 ahas2010 toole2012">(<a href="#ref-ratti2010"
+role="doc-biblioref">Ratti et al. 2010</a>; <a href="#ref-ahas2010"
+role="doc-biblioref">Ahas et al. 2010</a>; <a href="#ref-toole2012"
+role="doc-biblioref">Toole et al. 2012</a>)</span>. Operator data are
+usually sold, but Spain publishes daily origin-destination matrices
+derived from them <span class="citation" data-cites="kotov2026">(<a
+href="#ref-kotov2026" role="doc-biblioref">Kotov et al.
+2026</a>)</span>. This paper asks what can be done with sources that
+anyone can download.</p>
+<p>Two problems stand in the way, and they are of different kinds.</p>
+<p>The first is in the sources. Each open source publishes some of three
+things and omits the rest: origin-destination pairs, the purpose of the
+trip, the time of day. The omission is not an error in the file. ISO
+19157 <span class="citation" data-cites="iso19157">(<a
+href="#ref-iso19157" role="doc-biblioref">International Organization for
+Standardization 2013</a>)</span> defines computable elements of data
+quality: completeness, logical consistency, positional accuracy. A file
+can pass all of them and still answer a different question from the one
+the analyst puts to it. ISO 19157 calls the remaining element usability
+and leaves it to the user. A file named “From-To” that holds no origins
+is an example (Section 4.6).</p>
+<p>The second is in the method. Delimitations are judged by
+self-containment, which rises when areas become larger or fewer. This is
+the scale effect of the modifiable areal unit problem <span
+class="citation" data-cites="openshaw1984 fotheringham1991 wong2009">(<a
+href="#ref-openshaw1984" role="doc-biblioref">Openshaw 1984</a>; <a
+href="#ref-fotheringham1991" role="doc-biblioref">Fotheringham and Wong
+1991</a>; <a href="#ref-wong2009" role="doc-biblioref">Wong
+2009</a>)</span>. Take a score of 0.95 at district level and a score of
+0.70 at neighbourhood level. They cannot be compared until one knows
+what an arbitrary partition scores at each level. Delimitation
+algorithms differ as well <span class="citation"
+data-cites="casado2011 martinez2012 farmer2011">(<a
+href="#ref-casado2011" role="doc-biblioref">Casado-Díaz and Coombes
+2011</a>; <a href="#ref-martinez2012"
+role="doc-biblioref">Martínez-Bernabeu et al. 2012</a>; <a
+href="#ref-farmer2011" role="doc-biblioref">Farmer and Fotheringham
+2011</a>)</span>. An official product is defined by its algorithm, and
+its publication describes the acceptance criterion in more detail than
+the construction. The reference construction is the algorithm of Coombes
+and Bond <span class="citation" data-cites="coombes2008">(<a
+href="#ref-coombes2008" role="doc-biblioref">2008</a>)</span>, of which
+an open implementation exists <span class="citation"
+data-cites="lma_package">(<a href="#ref-lma_package"
+role="doc-biblioref">Ichim et al. 2023</a>)</span>.</p>
+<p>We put three questions and a smaller fourth.</p>
+<ul>
+<li><strong>Q1.</strong> Which of the three dimensions does each open
+source publish, and what happens to a standard indicator when the
+missing one is ignored?</li>
+<li><strong>Q2.</strong> How much of the self-containment of a partition
+comes from the number and sizes of its areas, how much from their
+contiguity, and how much from the position of the boundaries? Does the
+split change between countries and unit systems?</li>
+<li><strong>Q3.</strong> Take partitions built from one matrix under one
+validity rule by different constructions. How far apart are they, and
+how close does the standard construction come to an official map?</li>
+<li><strong>Q4.</strong> Studies of phone data often cluster temporal
+profiles of presence and name the clusters as land uses <span
+class="citation" data-cites="soto2011 lenormand2015">(<a
+href="#ref-soto2011" role="doc-biblioref">Soto and Frı́as-Martı́nez
+2011</a>; <a href="#ref-lenormand2015" role="doc-biblioref">Lenormand et
+al. 2015</a>)</span>. Do the profiles support that step?</li>
+</ul>
+<p>Q3 compares constructions. It does not judge the position of official
+boundaries: those were drawn from finer units than the open matrices and
+revised after the algorithm ran <span class="citation"
+data-cites="ons2016ttwa coombes2015">(<a href="#ref-ons2016ttwa"
+role="doc-biblioref">Office for National Statistics and Coombes
+2016</a>; <a href="#ref-coombes2015" role="doc-biblioref">Coombes and
+Office for National Statistics 2015</a>)</span>.</p>
+<p>The contributions are these. A closed form for the permutation null
+of partition self-containment (Eq. 4), which reduces the scale effect to
+two numbers. A three-part decomposition of self-containment into scale,
+contiguity and placement (Eq. 5), in which the contiguous baseline is
+drawn by a recombination chain that holds the sizes of the areas; it is
+applied to 11 partitions in three countries. A comparison of three
+constructions under one validity rule, one of them the standard
+Coombes-Bond algorithm with official parameters, run on two codings of
+the same matrix. The comparison uses a spatial error matrix weighted by
+employed residents (Section 3.7). A record of a coding change between
+two censuses that moves a national indicator fivefold. A pipeline in
+which every number of the text is a test target.</p>
+<h2 id="data">2 Data</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Source</th>
+<th>Territory and period</th>
+<th>Units</th>
+<th>Pairs</th>
+<th>Purpose</th>
+<th>Time</th>
+<th>Licence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ONS WU01EW <span class="citation" data-cites="ons2014wu01">(<a
+href="#ref-ons2014wu01" role="doc-biblioref">Office for National
+Statistics 2014</a>)</span></td>
+<td>England and Wales, census of 27 March 2011</td>
+<td>7,201 MSOA</td>
+<td>full matrix; special workplaces as pseudo-codes</td>
+<td>work</td>
+<td>none</td>
+<td>OGL v3</td>
+</tr>
+<tr>
+<td>ONS ODWP01EW <span class="citation" data-cites="ons2023od">(<a
+href="#ref-ons2023od" role="doc-biblioref">Office for National
+Statistics 2023</a>)</span></td>
+<td>England and Wales, census of 21 March 2021</td>
+<td>7,264 MSOA</td>
+<td>full matrix with a place-of-work indicator</td>
+<td>work</td>
+<td>none</td>
+<td>OGL v3</td>
+</tr>
+<tr>
+<td>CBS 85481NED <span class="citation" data-cites="cbs85481ned">(<a
+href="#ref-cbs85481ned" role="doc-biblioref">Centraal Bureau voor de
+Statistiek 2025</a>)</span></td>
+<td>Netherlands, December 2023</td>
+<td>342 municipalities</td>
+<td>full matrix, to the nearest 100 jobs</td>
+<td>jobs of employees</td>
+<td>none</td>
+<td>CC BY 4.0</td>
+</tr>
+<tr>
+<td>MITMS open mobility study <span class="citation"
+data-cites="mitms2024metodologia">(<a href="#ref-mitms2024metodologia"
+role="doc-biblioref">Ministerio de Transportes y Movilidad Sostenible
+2024</a>)</span></td>
+<td>Spain, 5 weekdays of October 2023</td>
+<td>3,792 districts</td>
+<td>full matrix of trips</td>
+<td>activity at both ends: home, work or study, other frequent place,
+other</td>
+<td>hour of departure</td>
+<td>ministry open-data licence</td>
+</tr>
+<tr>
+<td>CBS 81252NED <span class="citation" data-cites="cbs81252">(<a
+href="#ref-cbs81252" role="doc-biblioref">Statistics Netherlands (CBS)
+2016</a>)</span></td>
+<td>Netherlands, December 2014</td>
+<td>40 COROP regions</td>
+<td>40 x 40</td>
+<td>jobs of employees</td>
+<td>none</td>
+<td>CC BY 4.0</td>
+</tr>
+<tr>
+<td>SORS daily migrations <span class="citation"
+data-cites="sors2024">(<a href="#ref-sors2024"
+role="doc-biblioref">Statistical Office of the Republic of Serbia
+2024</a>)</span></td>
+<td>Serbia, census 2022</td>
+<td>168 municipalities</td>
+<td>none: four nested destination bands</td>
+<td>work; education (pupils and students as one number)</td>
+<td>none</td>
+<td>SORS terms</td>
+</tr>
+<tr>
+<td>MLIT people flow <span class="citation" data-cites="mlit2021">(<a
+href="#ref-mlit2021" role="doc-biblioref">Ministry of Land,
+Infrastructure, Transport and Tourism of Japan 2021</a>)</span></td>
+<td>Japan, Hiroshima prefecture, monthly 2019 to 2021</td>
+<td>1 km mesh; 30 municipalities</td>
+<td>none: four nested residence rings</td>
+<td>none: presence</td>
+<td>month x weekday or holiday x day or night</td>
+<td>Government of Japan Standard Terms of Use 2.0</td>
+</tr>
+<tr>
+<td>OSM public GPS traces <span class="citation"
+data-cites="osmtraces">(<a href="#ref-osmtraces"
+role="doc-biblioref">OpenStreetMap contributors 2026</a>)</span></td>
+<td>central Hiroshima, Belgrade, London</td>
+<td>points</td>
+<td>trajectories of contributors</td>
+<td>none</td>
+<td>timestamps</td>
+<td>ODbL</td>
+</tr>
+</tbody>
+</table>
+<p>Three sources publish pairs between fine units: England and Wales,
+the Netherlands from 2021, and Spain. They carry Sections 4.2 and
+4.3.</p>
+<p><em>Netherlands, 2023.</em> Table 85481NED counts employee jobs in
+December, not persons, by municipality of residence and municipality of
+work. CBS models the place of work from the establishments of the
+employer, and all figures are provisional <span class="citation"
+data-cites="cbs85481ned">(<a href="#ref-cbs85481ned"
+role="doc-biblioref">Centraal Bureau voor de Statistiek
+2025</a>)</span>. Pairs are published in thousands with one decimal. A
+pair is therefore known to the nearest 100 jobs, and pairs under 50
+appear as zero. The rounded pairs between municipalities retain 95.6 %
+of the jobs of Dutch residents (median municipality 93.7 %, smallest 56
+%). Jobs in an unknown municipality (295,600) are dropped. The reference
+partition is the 40 COROP regions. CBS describes them as designed in
+1970, each a central city with its surrounding area <span
+class="citation" data-cites="cbs85481ned">(<a href="#ref-cbs85481ned"
+role="doc-biblioref">Centraal Bureau voor de Statistiek
+2025</a>)</span>. COROP regions are unions of municipalities; each
+municipality is assigned to the region that contains its representative
+point.</p>
+<p><em>Spain, 2023.</em> The Ministry of Transport publishes daily
+matrices of trips between 3,909 zones <span class="citation"
+data-cites="mitms2024metodologia kotov2026">(<a
+href="#ref-mitms2024metodologia" role="doc-biblioref">Ministerio de
+Transportes y Movilidad Sostenible 2024</a>; <a href="#ref-kotov2026"
+role="doc-biblioref">Kotov et al. 2026</a>)</span>. In Spain, 3,792
+zones are municipalities, groups of small municipalities, and census
+districts of large cities; the other 117 are NUTS-3 regions of France
+and Portugal. Each trip carries the hour of departure and the activity
+at both ends. Activities and trips are inferred from the mobile network
+data of Orange España and expanded to the resident population by
+district, age and sex. Trips shorter than 500 m are not counted. We
+average five weekdays: 17 to 19 and 24 to 25 October 2023. 26 October is
+not published because of an incident at the operator. We keep trips from
+home to a place of work or study whose destination is not flagged as a
+possible place of study, 11.31 million trips a day between 3,744 zones.
+These are trips, not persons, and the category mixes work with some
+study. It is the only source in this study that publishes pairs, a
+purpose and the hour together.</p>
+<p>The other sources enter the audit of Q1 and are not delimited. The
+Dutch table of 2014 publishes pairs only between the 40 COROP regions,
+so it cannot test them. OpenStreetMap public GPS traces are described by
+their sample alone (Appendix A).</p>
+<p>Reference layers: the official TTWA of 2011 <span class="citation"
+data-cites="ons2016ttwa">(<a href="#ref-ons2016ttwa"
+role="doc-biblioref">Office for National Statistics and Coombes
+2016</a>)</span>, with boundaries and look-ups from the ONS Open
+Geography Portal; municipal and COROP boundaries of 2023 from CBS and
+PDOK; the district zoning of the Spanish study; GHS-POP and GHS-SMOD
+R2023A <span class="citation" data-cites="ghspop2023 ghssmod2023">(<a
+href="#ref-ghspop2023" role="doc-biblioref">Schiavina, Freire, et al.
+2023</a>; <a href="#ref-ghssmod2023" role="doc-biblioref">Schiavina,
+Melchiorri, et al. 2023</a>)</span>, which apply the
+degree-of-urbanisation method of Eurostat and partners on a 1 km grid
+<span class="citation" data-cites="dijkstra2021">(<a
+href="#ref-dijkstra2021" role="doc-biblioref">Dijkstra et al.
+2021</a>)</span>; municipal polygons of GeoSrbija.</p>
+<p>Two remarks on what is not here. Eurostat statistics from mobile
+network operators, announced in the abstract of the talk, do not exist
+as a cross-country dataset: the Multi-MNO project published a method and
+open reference code <span class="citation"
+data-cites="ricciato2020 multimno">(<a href="#ref-ricciato2020"
+role="doc-biblioref">Ricciato et al. 2020</a>; <a href="#ref-multimno"
+role="doc-biblioref">Eurostat 2025</a>)</span>. The people-flow data of
+the Japanese ministry are not operator data; the provider runs a panel
+of smartphone applications with GPS and expands it to the
+population.</p>
+<p>The census of England and Wales was taken on 21 March 2021, during a
+national lockdown. ONS advises that the travel-to-work data reflect that
+day <span class="citation" data-cites="ons2022quality">(<a
+href="#ref-ons2022quality" role="doc-biblioref">Office for National
+Statistics 2022</a>)</span>. We use the 2021 matrix to study coding and
+method, not to describe commuting in normal times.</p>
+<p>Every input file is listed with address, licence and SHA-256 in
+<code>data/manifest.yaml</code>.</p>
+<h2 id="methods">3 Methods</h2>
+<h3 id="notation">3.1 Notation</h3>
+<p><span class="math inline">\(U\)</span> is the set of <span
+class="math inline">\(N\)</span> units. <span
+class="math inline">\(T_{ij}\)</span> is the number of people who live
+in unit <span class="math inline">\(i\)</span> and work in unit <span
+class="math inline">\(j\)</span> (jobs in the Netherlands, trips in
+Spain); <span class="math inline">\(T=\sum_{ij}T_{ij}\)</span>. A
+partition <span class="math inline">\(P\)</span> assigns to each unit of
+a set <span class="math inline">\(L\subseteq U\)</span> of <span
+class="math inline">\(n\)</span> labelled units one of <span
+class="math inline">\(K\)</span> areas; area <span
+class="math inline">\(a\)</span> has <span
+class="math inline">\(n_a\)</span> units.</p>
+<h3 id="self-containment">3.2 Self-containment</h3>
+<p>The diagonal share of the unit system is</p>
+<p><span class="math display">\[d=\frac{\sum_i T_{ii}}{T}.
+\tag{1}\]</span></p>
+<p>The self-containment of a partition is the share of flows leaving
+labelled units that end in the area where they start,</p>
+<p><span class="math display">\[SC(P)=\frac{\sum_a\sum_{i,j\in
+a}T_{ij}}{\sum_{i\in L}\sum_j T_{ij}}. \tag{2}\]</span></p>
+<p>For one area <span class="math inline">\(a\)</span> with employed
+residents <span class="math inline">\(R_a=\sum_{i\in a}\sum_j
+T_{ij}\)</span>, jobs <span class="math inline">\(J_a=\sum_j\sum_{i\in
+a}T_{ji}\)</span> and internal flow <span
+class="math inline">\(I_a\)</span>, the supply-side value is <span
+class="math inline">\(I_a/R_a\)</span>, the demand-side value is <span
+class="math inline">\(I_a/J_a\)</span>, and the two-sided value is the
+smaller of the two.</p>
+<p>Where a source publishes destination bands and no pairs, the only
+computable quantity is the share of the first band, <span
+class="math inline">\(SC^{band}_i = T_i^{same}/T_i^{total}\)</span>. Its
+denominator is the population the publisher counted, so it is not
+comparable with Eq. 2.</p>
+<h3 id="a-two-rule-heuristic">3.3 A two-rule heuristic</h3>
+<p>We use a commuting-threshold heuristic of the functional-urban-area
+family <span class="citation" data-cites="oecd2012">(<a
+href="#ref-oecd2012" role="doc-biblioref">OECD 2012</a>)</span>, with
+three parameters.</p>
+<ol type="1">
+<li><em>Cores.</em> Unit <span class="math inline">\(i\)</span> is a
+core if its external inflow <span class="math inline">\(\sum_{j\ne
+i}T_{ji}\)</span> is at or above the <span
+class="math inline">\(q\)</span>-quantile over units and its job ratio
+<span class="math inline">\(J_i/R_i\)</span> is at least 1.</li>
+<li><em>Core groups.</em> Two cores are linked if one sends at least a
+share <span class="math inline">\(m\)</span> of its external outflow to
+the other. Connected components of this graph are core groups.</li>
+<li><em>Attachment.</em> Every other unit <span
+class="math inline">\(u\)</span> joins the area that receives the
+largest share of its external outflow, if that share is at least <span
+class="math inline">\(t\)</span>. Newly attached units enlarge the
+areas; the step repeats until no unit moves.</li>
+</ol>
+<p>The published results use <span
+class="math inline">\(q=0.95\)</span>, <span
+class="math inline">\(m=0.10\)</span>, <span
+class="math inline">\(t=0.15\)</span> in all three countries. The values
+were set on England and Wales and are not tuned elsewhere. The number of
+areas equals the number of core groups, so it depends on <span
+class="math inline">\(q\)</span> and <span
+class="math inline">\(m\)</span> and not on <span
+class="math inline">\(t\)</span>. Units that reach no area stay
+unassigned. This heuristic is not the algorithm of the official areas;
+Section 3.6 describes that algorithm.</p>
+<h3 id="scale-the-permutation-null-and-its-closed-form">3.4 Scale: the
+permutation null and its closed form</h3>
+<p>Keep the partition’s sizes <span
+class="math inline">\(n_1,\dots,n_K\)</span> and permute the labels
+among the <span class="math inline">\(n\)</span> labelled units
+uniformly at random. Two distinct labelled units then fall in the same
+area with probability</p>
+<p><span class="math display">\[h=\frac{\sum_a n_a(n_a-1)}{n(n-1)}.
+\tag{3}\]</span></p>
+<p>A flow that stays in its unit stays in its area under every
+permutation. With <span class="math inline">\(D=\sum_{i\in
+L}T_{ii}\)</span>, <span class="math inline">\(B=\sum_{i\ne j;\,i,j\in
+L}T_{ij}\)</span> and <span class="math inline">\(T_L=\sum_{i\in
+L}\sum_j T_{ij}\)</span>, linearity of expectation gives</p>
+<p><span
+class="math display">\[\mathbb{E}[SC_0]=\frac{D+hB}{T_L},\qquad\text{and
+for }L=U:\quad \mathbb{E}[SC_0]=d+(1-d)\,h. \tag{4}\]</span></p>
+<p>The null therefore depends on two numbers. <span
+class="math inline">\(d\)</span> belongs to the unit system: on the 2021
+matrix it is 0.093 for MSOAs and 0.551 for districts. <span
+class="math inline">\(h\)</span> belongs to the size distribution of the
+partition. Its inverse <span class="math inline">\(1/\sum_a
+(n_a/n)^2\)</span> is the Hill number of order 2 <span class="citation"
+data-cites="hill1973 jost2006">(<a href="#ref-hill1973"
+role="doc-biblioref">Hill 1973</a>; <a href="#ref-jost2006"
+role="doc-biblioref">Jost 2006</a>)</span>, which we report as the
+effective number of areas. We also draw 1,000 permutations to obtain the
+spread.</p>
+<h3 id="zoning-random-contiguous-partitions-of-the-same-sizes">3.5
+Zoning: random contiguous partitions of the same sizes</h3>
+<p>Permutation destroys contiguity, and with it the short trips that any
+compact region holds. A second null keeps contiguity and keeps the
+sizes. We use the recombination chain of DeFord et al. <span
+class="citation" data-cites="deford2021">(<a href="#ref-deford2021"
+role="doc-biblioref">2021</a>)</span>. One step does the following:</p>
+<ol type="1">
+<li>Pick an area at random and one of its neighbours at random, and
+merge the two.</li>
+<li>Draw a uniform spanning tree of the merged units with Wilson’s
+algorithm.</li>
+<li>Cut one tree edge, chosen at random among those that leave two
+pieces within 5 % of the sizes of the two areas in the partition under
+test.</li>
+</ol>
+<p>If no tree edge qualifies, another tree is drawn; after 20 trees the
+step is skipped. Every state of the chain is a partition into contiguous
+areas whose sizes, counted in units, stay within that tolerance of the
+partition under test, so the effective number of areas barely moves
+(Appendix B). Some areas lie in several pieces on the adjacency graph:
+islands, and a few areas of the Coombes-Bond construction, which does
+not enforce contiguity. For the chain, each such area is made connected
+by one edge between the nearest units of its pieces.</p>
+<p>We run 200,000 steps from the partition under test, discard the first
+100,000, and keep one state every 1,000 steps (100 states). Three
+diagnostics show whether the chain has left its start:</p>
+<ul>
+<li>the number of steps until self-containment falls into the range of
+the kept states;</li>
+<li>the lag-1 autocorrelation of self-containment over the kept
+states;</li>
+<li>the Geweke statistic <span class="citation"
+data-cites="geweke1992">(<a href="#ref-geweke1992"
+role="doc-biblioref">Geweke 1992</a>)</span>, which compares the mean of
+the first tenth of the kept states with the mean of the last half.</li>
+</ul>
+<p>We also report the adjusted Rand index of the kept states with the
+start, and between kept states half the run apart.</p>
+<p>The chain does not sample uniformly from all contiguous partitions.
+Its stationary distribution weights a partition by the number of
+spanning trees of its areas, which favours compact areas <span
+class="citation" data-cites="deford2021 cannon2026">(<a
+href="#ref-deford2021" role="doc-biblioref">DeFord et al. 2021</a>; <a
+href="#ref-cannon2026" role="doc-biblioref">Cannon et al.
+2026</a>)</span>. Uniform sampling is out of reach for graphs of this
+size <span class="citation" data-cites="deford2021">(<a
+href="#ref-deford2021" role="doc-biblioref">DeFord et al.
+2021</a>)</span>, and the spanning-tree distribution has been proposed
+as the canonical ensemble for redistricting <span class="citation"
+data-cites="cannon2026">(<a href="#ref-cannon2026"
+role="doc-biblioref">Cannon et al. 2026</a>)</span>. We write <span
+class="math inline">\(\overline{SC}_c\)</span> for the mean
+self-containment of the kept states. Then</p>
+<p><span
+class="math display">\[SC(P)=\underbrace{\mathbb{E}[SC_0]}_{\text{scale}}+\underbrace{\overline{SC}_c-\mathbb{E}[SC_0]}_{\text{contiguity}}+\underbrace{SC(P)-\overline{SC}_c}_{\text{placement}}.
+\tag{5}\]</span></p>
+<p>The third term is what the partition adds to a contiguous zoning of
+the same sizes drawn from this ensemble. Comparing a zoning with random
+zonings of the same units goes back to Openshaw <span class="citation"
+data-cites="openshaw1977 openshaw1984">(<a href="#ref-openshaw1977"
+role="doc-biblioref">1977</a>; <a href="#ref-openshaw1984"
+role="doc-biblioref">1984</a>)</span>. An earlier version of this paper
+used region growing, which does not hold the sizes and, like other
+constructive algorithms, is not designed to sample from a known
+distribution <span class="citation" data-cites="fifield2020">(<a
+href="#ref-fifield2020" role="doc-biblioref">Fifield et al.
+2020</a>)</span>; Appendix B reports both.</p>
+<h3 id="constructions-for-the-validity-rule">3.6 Constructions for the
+validity rule</h3>
+<p>An official area must hold at least 75 % of its resident workforce
+and have at least 75 % of its jobs filled by residents, and its
+economically active population must be at least 3,500. For areas with a
+working population above 25,000, rates as low as 66.7 % are accepted as
+a trade-off between size and self-containment <span class="citation"
+data-cites="ons2016ttwa coombes2008">(<a href="#ref-ons2016ttwa"
+role="doc-biblioref">Office for National Statistics and Coombes
+2016</a>; <a href="#ref-coombes2008" role="doc-biblioref">Coombes and
+Bond 2008</a>)</span>. We measure size <span
+class="math inline">\(s\)</span> by the employed residents in the matrix
+and take the requirement to fall linearly between the two sizes,</p>
+<p><span
+class="math display">\[\tau(s)=0.75-\Big(0.75-\tfrac{2}{3}\Big)\,\min\!\Big(1,\max\!\Big(0,\tfrac{s-3500}{25000-3500}\Big)\Big),\qquad
+s\ge 3500. \tag{6}\]</span></p>
+<p>The rule states when an area is acceptable. What happens to an area
+that is not acceptable is the construction. We compare three.</p>
+<ul>
+<li><em>Coombes-Bond, Istat implementation.</em> The R package
+LabourMarketAreas 3.4 <span class="citation"
+data-cites="lma_package">(<a href="#ref-lma_package"
+role="doc-biblioref">Ichim et al. 2023</a>)</span> implements the
+version of the TTWA algorithm by Coombes and Bond <span class="citation"
+data-cites="coombes2008">(<a href="#ref-coombes2008"
+role="doc-biblioref">2008</a>)</span>, as described by Franconi et al.
+<span class="citation" data-cites="franconi2016istat">(<a
+href="#ref-franconi2016istat" role="doc-biblioref">2016</a>)</span>.
+Every unit starts as its own area. The least valid area is dissolved and
+its units are reassigned by a cohesion measure of their flows. The
+process repeats until all areas are valid. It is the method recommended
+for European labour market areas <span class="citation"
+data-cites="coombes2012study eurostat2020lma">(<a
+href="#ref-coombes2012study" role="doc-biblioref">Coombes et al.
+2012</a>; <a href="#ref-eurostat2020lma" role="doc-biblioref">Eurostat
+2020</a>)</span>. We run it with the parameters of the official areas:
+minimum size 3,500, minimum self-containment 0.667, target size 25,000,
+target self-containment 0.75. For speed, one per-row grouping in the
+package’s validity function is replaced by an element-wise minimum that
+returns the same values. The Dutch and Spanish matrices were run both
+ways, and the partitions are identical.</li>
+<li><em>Greedy merge</em>, a naive repair: the least valid area is
+merged whole into the area with which it exchanges most flow;
+repeat.</li>
+<li><em>Dissolution</em>, a naive repair: the least valid area is
+dissolved, and each of its units goes to the valid area with which that
+unit exchanges most flow; repeat.</li>
+</ul>
+<p>The package is not the production code of the official areas. Those
+were built with Fortran code from Newcastle University; in January 2020
+Eurostat reported that the outputs of the two were “not wholly
+comparable” <span class="citation" data-cites="eurostat2020lma">(<a
+href="#ref-eurostat2020lma" role="doc-biblioref">Eurostat
+2020</a>)</span>. After the algorithm ran, the draft areas were revised
+after consultation with their users and cleaned of non-contiguities
+<span class="citation" data-cites="ons2016ttwa coombes2015">(<a
+href="#ref-ons2016ttwa" role="doc-biblioref">Office for National
+Statistics and Coombes 2016</a>; <a href="#ref-coombes2015"
+role="doc-biblioref">Coombes and Office for National Statistics
+2015</a>)</span>. They were built from LSOAs, which are smaller than the
+units of the open matrix. Agreement between the package output and the
+official map therefore measures how far an open implementation of the
+published method gets on the open matrix. It does not test the official
+procedure.</p>
+<p>The official areas were also built from a differently coded matrix.
+People who work mainly at or from home, at an offshore installation or
+with no fixed workplace were counted as working at their residence;
+workers abroad were left out <span class="citation"
+data-cites="coombes2015">(<a href="#ref-coombes2015"
+role="doc-biblioref">Coombes and Office for National Statistics
+2015</a>)</span>. The matrix of Section 4.1 leaves all of them out. We
+run the Coombes-Bond algorithm on both codings. Agreement and the
+decomposition use the matrix of commuters for every partition, so that
+all partitions are scored on the same flows.</p>
+<h3 id="agreement-the-spatial-error-matrix">3.7 Agreement: the spatial
+error matrix</h3>
+<p>For a candidate partition with areas <span
+class="math inline">\(a\)</span> and a reference partition with areas
+<span class="math inline">\(b\)</span>, and unit weights <span
+class="math inline">\(w_u\)</span>,</p>
+<p><span class="math display">\[C_{ab}=\sum_{u\in a\cap b}w_u.
+\tag{7}\]</span></p>
+<p><span class="math inline">\(C\)</span> is the error matrix of the
+delimitation in the sense of accuracy assessment <span class="citation"
+data-cites="congalton1991">(<a href="#ref-congalton1991"
+role="doc-biblioref">Congalton 1991</a>)</span>: mass off the matched
+cells is weight placed in the wrong area. The weight is employed
+residents, so error is counted in people; area in km² is the
+alternative. From <span class="math inline">\(C\)</span>, with <span
+class="math inline">\(C_{a\cdot}\)</span> and <span
+class="math inline">\(C_{\cdot b}\)</span> the margins:</p>
+<p><span
+class="math display">\[IoU(a,b)=\frac{C_{ab}}{C_{a\cdot}+C_{\cdot
+b}-C_{ab}},\qquad a^*(b)=\arg\max_a IoU(a,b), \tag{8}\]</span></p>
+<p><span
+class="math display">\[\text{omission}(b)=1-\frac{C_{a^*b}}{C_{\cdot
+b}},\qquad \text{commission}(b)=1-\frac{C_{a^*b}}{C_{a^*\cdot}}.
+\tag{9}\]</span></p>
+<p>IoU is the Jaccard coefficient <span class="citation"
+data-cites="jaccard1912">(<a href="#ref-jaccard1912"
+role="doc-biblioref">Jaccard 1912</a>)</span>. We report the mean of
+<span class="math inline">\(IoU(a^*(b),b)\)</span> weighted by <span
+class="math inline">\(C_{\cdot b}\)</span>, the adjusted Rand index
+computed from <span class="math inline">\(C\)</span> <span
+class="citation" data-cites="hubert1985">(<a href="#ref-hubert1985"
+role="doc-biblioref">Hubert and Arabie 1985</a>)</span>, and
+homogeneity, completeness and their harmonic mean <span class="citation"
+data-cites="rosenberg2007">(<a href="#ref-rosenberg2007"
+role="doc-biblioref">Rosenberg and Hirschberg 2007</a>)</span>.</p>
+<p>The official British areas are built from blocks smaller than our
+units. A unit is assigned to the official area that holds the plurality
+of its blocks (LSOAs in 2011, output areas in 2021). 332 of 7,264 units
+are cut by an official boundary; the assignment error this causes is in
+every agreement value with the official map.</p>
+<h3 id="contiguity">3.8 Contiguity</h3>
+<p>Adjacency is queen adjacency of the unit polygons. For the heuristic,
+each area keeps the component that holds its core; every other component
+goes to the adjacent area with the largest two-way flow across the
+shared border. A component with no neighbour in another area is an
+island and is reported. The Coombes-Bond output is not repaired; we
+report how many of its areas are in more than one piece.</p>
+<h3 id="urbanisation-of-a-municipality">3.9 Urbanisation of a
+municipality</h3>
+<p>The share of the GHS-POP population of a polygon that lies in
+GHS-SMOD classes 21 to 30. The share of the polygon’s area in the same
+classes is computed as a control.</p>
+<h3 id="temporal-signatures">3.10 Temporal signatures</h3>
+<p>For Japanese mesh cells, profiles of presence in four slots (weekday
+or holiday, day or night) are classified by declared rules on two
+log-ratio axes. Before any class is named, we test whether the cells
+form groups at all <span class="citation" data-cites="adolfsson2019">(<a
+href="#ref-adolfsson2019" role="doc-biblioref">Adolfsson et al.
+2019</a>)</span>: HDBSCAN over a grid of settings, the Hopkins
+statistic, and the silhouette of k-means. Appendix C gives the
+details.</p>
+<h3 id="reproducibility-protocol">3.11 Reproducibility protocol</h3>
+<p>All parameters are in one file. The pipeline writes every number to
+<code>golden_actual.yaml</code>. This text is rendered from a template
+whose placeholders name entries of that file, so no number is typed. A
+frozen copy is the regression target of the test suite. The Coombes-Bond
+step runs in R in its own pinned environment; its outputs are committed,
+and the Python pipeline reads them. A second file holds the numbers of
+the first version of the slides, and a generated register compares the
+two (Section 4.7). The run was repeated in a fresh environment built
+from the lock file and gave the same values.</p>
+<h2 id="results">4 Results</h2>
+<h3 id="coding-one-category-of-the-code-list">4.1 Coding: one category
+of the code list</h3>
+<p>In 2011 people who work mainly at or from home, and people with no
+fixed workplace, carry their own destination codes. In 2021 the same
+people are rows whose workplace is their residence, marked by a
+place-of-work indicator <span class="citation"
+data-cites="ons2023od">(<a href="#ref-ons2023od"
+role="doc-biblioref">Office for National Statistics 2023</a>)</span>.
+They numbered 4.9 million in 2011 and 12.6 million in 2021, 45 % of
+employed residents.</p>
+<table>
+<thead>
+<tr>
+<th>Matrix</th>
+<th>Employed residents in the matrix</th>
+<th>Diagonal share <span class="math inline">\(d\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2011, special codes excluded</td>
+<td>21,625,060</td>
+<td>0.103</td>
+</tr>
+<tr>
+<td>2021, indicator 1 kept</td>
+<td>15,085,108 + 12,586,827</td>
+<td>0.506</td>
+</tr>
+<tr>
+<td>2021, indicator 3 only</td>
+<td>15,085,108</td>
+<td>0.093</td>
+</tr>
+</tbody>
+</table>
+<p>Read as published, the file says that within-unit commuting rose
+fivefold in ten years. With the same treatment in both years it fell
+from 0.103 to 0.093. What changed is the number of people with a fixed
+workplace on census day, from 21.6 to 15.1 million. The pandemic made
+the category larger; the code list decides where the category lands. In
+2011 it lands outside the matrix, in 2021 on its diagonal. The file
+format gives no warning; the code list does. When ONS built the 2011
+Travel to Work Areas, it put these people on the diagonal as well <span
+class="citation" data-cites="coombes2015">(<a href="#ref-coombes2015"
+role="doc-biblioref">Coombes and Office for National Statistics
+2015</a>)</span>; Section 4.3 shows what that choice does to a
+delimitation.</p>
+<figure>
+<img src="../figures/uk_trap1_code_list.png"
+alt="Figure 1. The 2021 place-of-work indicator and the diagonal share." />
+<figcaption aria-hidden="true">Figure 1. The 2021 place-of-work
+indicator and the diagonal share.</figcaption>
+</figure>
+<h3 id="scale-contiguity-placement-in-three-countries">4.2 Scale,
+contiguity, placement in three countries</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th>Partition</th>
+<th>Areas</th>
+<th>Effective areas</th>
+<th><span class="math inline">\(SC\)</span></th>
+<th>Scale</th>
+<th>Contiguity</th>
+<th>Placement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>England and Wales 2011, heuristic</td>
+<td>197</td>
+<td>16.4</td>
+<td>0.740</td>
+<td>0.157</td>
+<td>0.397</td>
+<td>0.186</td>
+</tr>
+<tr>
+<td>England and Wales 2011, Coombes-Bond, commuters only</td>
+<td>59</td>
+<td>18.8</td>
+<td>0.812</td>
+<td>0.150</td>
+<td>0.509</td>
+<td>0.153</td>
+</tr>
+<tr>
+<td>England and Wales 2011, Coombes-Bond, home workers at home</td>
+<td>95</td>
+<td>25.5</td>
+<td>0.783</td>
+<td>0.138</td>
+<td>0.485</td>
+<td>0.160</td>
+</tr>
+<tr>
+<td>England and Wales 2011, official TTWA</td>
+<td>173</td>
+<td>35.2</td>
+<td>0.749</td>
+<td>0.128</td>
+<td>0.406</td>
+<td>0.215</td>
+</tr>
+<tr>
+<td>England and Wales 2021, heuristic</td>
+<td>235</td>
+<td>24.5</td>
+<td>0.696</td>
+<td>0.130</td>
+<td>0.432</td>
+<td>0.134</td>
+</tr>
+<tr>
+<td>England and Wales 2021, official TTWA</td>
+<td>173</td>
+<td>34.7</td>
+<td>0.749</td>
+<td>0.119</td>
+<td>0.433</td>
+<td>0.196</td>
+</tr>
+<tr>
+<td>Netherlands 2023, heuristic</td>
+<td>8</td>
+<td>3.6</td>
+<td>0.914</td>
+<td>0.591</td>
+<td>0.239</td>
+<td>0.084</td>
+</tr>
+<tr>
+<td>Netherlands 2023, Coombes-Bond</td>
+<td>26</td>
+<td>17.3</td>
+<td>0.785</td>
+<td>0.468</td>
+<td>0.233</td>
+<td>0.085</td>
+</tr>
+<tr>
+<td>Netherlands 2023, COROP of 1970</td>
+<td>40</td>
+<td>28.4</td>
+<td>0.710</td>
+<td>0.455</td>
+<td>0.190</td>
+<td>0.065</td>
+</tr>
+<tr>
+<td>Spain 2023, heuristic</td>
+<td>69</td>
+<td>30.5</td>
+<td>0.884</td>
+<td>0.294</td>
+<td>0.523</td>
+<td>0.068</td>
+</tr>
+<tr>
+<td>Spain 2023, Coombes-Bond</td>
+<td>271</td>
+<td>120.5</td>
+<td>0.898</td>
+<td>0.278</td>
+<td>0.399</td>
+<td>0.220</td>
+</tr>
+</tbody>
+</table>
+<p>Heuristic: after contiguity repair. Home workers at home: the
+partition built on the matrix as ONS coded it, scored like every British
+partition on the matrix of commuters. Scale is Eq. 4 over the labelled
+units; contiguity and placement follow Eq. 5 with the recombination
+chain. The three parts sum to <span
+class="math inline">\(SC\)</span>.</p>
+<p>The closed form agrees with the permutations: 0.1303 against a mean
+of 0.1303 (standard deviation 0.0010) in 2021, and 0.1571 against 0.1571
+in 2011.</p>
+<p>Four observations.</p>
+<p><em>The count of areas says little about scale.</em> The Dutch
+heuristic returns 8 areas, which behave under permutation like 3.6 equal
+ones. One area holds Amsterdam, Rotterdam, The Hague and Utrecht, and 56
+% of the jobs by place of residence. Its raw score, 0.914, is the
+highest in the table, and 0.591 of it is scale.</p>
+<p><em>Which of scale and contiguity is larger depends on the unit
+system.</em> The diagonal share <span class="math inline">\(d\)</span>
+is 0.103 for British MSOAs in 2011, 0.272 for Spanish districts and
+0.437 for Dutch municipalities. Contiguity is the largest part in every
+British row, and scale in every Dutch row. A raw score compares unit
+systems as much as it compares constructions.</p>
+<p><em>Placement is small in every row.</em> It runs from 0.065 to 0.220
+and is never more than 29 % of the score. Constructions compete for this
+part, and it is the part on which they should be compared. No
+construction leads everywhere. The Coombes-Bond construction places
+boundaries better than the heuristic in Spain (0.220 against 0.068). In
+the Netherlands the two are level (0.085 and 0.084). In England and
+Wales it scores lower: 0.153 on the matrix of commuters and 0.160 on the
+ONS coding, against 0.186 for the heuristic. The official British areas
+reach 0.215, the highest of the British rows. The COROP regions reach
+0.065, below both constructions on the same pairs.</p>
+<p><em>Every partition beats its baseline.</em> In each chain all 100
+kept states score below the partition under test. The largest kept score
+is 0.562 for the official areas of 2011, against 0.749 observed.</p>
+<p>The chains leave their start within 3,000 steps, far inside the
+discarded 100,000. Consecutive kept states are nearly independent: the
+lag-1 autocorrelation runs from -0.17 to +0.43. The Geweke statistic
+stays below 1.7 in absolute value. The adjusted Rand index of the kept
+states with the start differs from that between kept states by at most
+0.05 (Appendix B).</p>
+<p>At district level (331 units) the heuristic gives 9 areas with <span
+class="math inline">\(SC\)</span> = 0.947. The permutation null is 0.657
+(standard deviation 0.008), so 69 % of the score is scale. At MSOA level
+the share is 19 %. The higher score is the less informative one.</p>
+<figure>
+<img src="../figures/uk_trap2_null_model.png"
+alt="Figure 2. Self-containment against the permutation null, at two scales." />
+<figcaption aria-hidden="true">Figure 2. Self-containment against the
+permutation null, at two scales.</figcaption>
+</figure>
+<figure>
+<img src="../figures/uk_decomposition.png"
+alt="Figure 3. Decomposition of self-containment into scale, contiguity and placement, three countries." />
+<figcaption aria-hidden="true">Figure 3. Decomposition of
+self-containment into scale, contiguity and placement, three
+countries.</figcaption>
+</figure>
+<h3 id="constructions-under-one-rule">4.3 Constructions under one
+rule</h3>
+<p><strong>England and Wales.</strong></p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Construction, 2011 matrix</th>
+<th>Areas</th>
+<th>ARI</th>
+<th>Mean IoU</th>
+<th>Median IoU</th>
+<th>Mean IoU by area</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Heuristic</td>
+<td>197</td>
+<td>0.54</td>
+<td>0.58</td>
+<td>0.48</td>
+<td>0.44</td>
+</tr>
+<tr>
+<td>Rule by greedy merge</td>
+<td>67</td>
+<td>0.46</td>
+<td>0.48</td>
+<td>0.23</td>
+<td>0.37</td>
+</tr>
+<tr>
+<td>Rule by dissolution</td>
+<td>61</td>
+<td>0.43</td>
+<td>0.44</td>
+<td>0.19</td>
+<td>0.33</td>
+</tr>
+<tr>
+<td>Coombes-Bond, commuters only</td>
+<td>59</td>
+<td>0.42</td>
+<td>0.35</td>
+<td>0.20</td>
+<td>0.34</td>
+</tr>
+<tr>
+<td>Coombes-Bond, home workers at home</td>
+<td>95</td>
+<td>0.49</td>
+<td>0.42</td>
+<td>0.35</td>
+<td>0.46</td>
+</tr>
+</tbody>
+</table>
+<p>Reference: the 173 official areas of 2011 that hold units of England
+or Wales (167 in England and Wales and 6 that cross a national border).
+Weights: employed residents, except in the last column.</p>
+<p>The heuristic gives 197 areas, close in number to the official 173,
+with an adjusted Rand index of 0.54. The two naive repairs enforce the
+published rule and move the map away from the official one. Greedy merge
+leaves 67 areas and dissolution 61, and agreement falls to 0.46 and
+0.43. Under greedy merge the London area holds 6.1 million employed
+residents, 28 % of England and Wales. Each merge raises the pull of the
+area that absorbed, and the next weak area goes the same way. On the
+2021 matrix dissolution ends with 46 areas, one of them with 45 % of
+employed residents.</p>
+<p>The standard construction returns 59 areas on the matrix of
+commuters, close to the naive repairs and far from the official 173. Its
+adjusted Rand index with the official map is 0.42, and its mean IoU
+0.35. The largest area holds 18 % of employed residents. 95 % of its
+areas meet Eq. 6, and 21 are in more than one piece.</p>
+<p>The official areas were built from a matrix coded differently
+(Section 3.6). Counted as ONS counted them, 5.0 million people who work
+at home, offshore or with no fixed place join the diagonal, and <span
+class="math inline">\(d\)</span> rises from 0.103 to 0.271. With the
+same algorithm and the same parameters, the count of areas rises from 59
+to 95, and agreement with the official map from 0.42 to 0.49. One
+category of the code list changes the count of areas by more than the
+choice between the two naive repairs does. The rest of the distance to
+the official map has causes that the open matrix cannot remove: LSOAs as
+units, other code, and the revision after the algorithm ran. The
+heuristic, whose count of areas is nearest the official one, still
+agrees with it best.</p>
+<p>Weighting by area instead of by people lowers the mean IoU of the
+heuristic and of the naive repairs: they agree worse in sparsely
+populated country than the people-weighted value shows. For the
+Coombes-Bond maps the two weightings give similar values, and on the ONS
+coding the area-weighted value is the higher one.</p>
+<p><strong>The same count from different rules.</strong> Over a grid of
+120 pairs <span class="math inline">\((q,m)\)</span> the heuristic gives
+from 63 to 1,063 areas. 4 pairs give between 223 and 247 areas; with
+three attachment thresholds each they give 12 maps. Their pairwise
+adjusted Rand index runs from 0.46 to 0.98, median 0.67. Their agreement
+with the official areas runs from 0.54 to 0.68, and their
+self-containment from 0.641 to 0.737. A count of areas near the official
+count is therefore not evidence of a similar map.</p>
+<figure>
+<img src="../figures/uk_trap3_three_maps.png"
+alt="Figure 4. One published criterion, four maps: the heuristic, the Coombes-Bond algorithm on two codings of the 2011 matrix, and the official areas." />
+<figcaption aria-hidden="true">Figure 4. One published criterion, four
+maps: the heuristic, the Coombes-Bond algorithm on two codings of the
+2011 matrix, and the official areas.</figcaption>
+</figure>
+<figure>
+<img src="../figures/uk_trap3_agreement.png"
+alt="Figure 5. Agreement with the official areas." />
+<figcaption aria-hidden="true">Figure 5. Agreement with the official
+areas.</figcaption>
+</figure>
+<figure>
+<img src="../figures/uk_trap3_sweep.png"
+alt="Figure 6. Maps with the same number of areas." />
+<figcaption aria-hidden="true">Figure 6. Maps with the same number of
+areas.</figcaption>
+</figure>
+<p><strong>Netherlands.</strong> On the pairs of 2023 the median
+supply-side self-containment of the COROP regions is 0.66. 20 % of them
+reach 0.75 on the supply side and 15 % on both sides, and 45 % meet Eq.
+6. The standard construction returns 26 areas. 96 % of them meet Eq. 6,
+and they agree with the COROP regions at an adjusted Rand index of 0.50
+(mean IoU 0.46). The heuristic returns 8 areas and agrees with the COROP
+regions at 0.14. In Section 4.2 the COROP regions have a placement term
+of 0.065. On the same pairs the standard construction reaches 0.085. The
+standard construction is built from these flows and does better on both
+counts, as it should. The COROP regions still hold more flow than any
+kept state of the chain for their sizes.</p>
+<figure>
+<img src="../figures/nl_2023_maps.png"
+alt="Figure 7. Netherlands 2023: Coombes-Bond areas, heuristic areas and the COROP regions." />
+<figcaption aria-hidden="true">Figure 7. Netherlands 2023: Coombes-Bond
+areas, heuristic areas and the COROP regions.</figcaption>
+</figure>
+<p><strong>Spain.</strong> The heuristic, with the parameters set on
+England and Wales, returns 69 areas and leaves 751 zones unassigned,
+which send 14 % of the trips: the parameters do not carry over to
+another country. The standard construction returns 271 areas and assigns
+every district that sends trips; the 7 zones it leaves out are French
+and Portuguese regions that only receive them. 97 % of its areas meet
+Eq. 6, and 11 are in more than one piece. The two maps agree at an
+adjusted Rand index of 0.59 over the zones both assign. Trips from home
+to work or study peak at 07:00, and 49 % of them start between 06:00 and
+09:59 (Figure 9). The matrix has the time profile of a commuting matrix.
+What it cannot provide is the count of persons (Section 6).</p>
+<figure>
+<img src="../figures/es_maps.png"
+alt="Figure 8. Spain 2023: Coombes-Bond areas and heuristic areas." />
+<figcaption aria-hidden="true">Figure 8. Spain 2023: Coombes-Bond areas
+and heuristic areas.</figcaption>
+</figure>
+<figure>
+<img src="../figures/es_hourly.png"
+alt="Figure 9. Spain 2023: trips by hour of departure and activity at both ends." />
+<figcaption aria-hidden="true">Figure 9. Spain 2023: trips by hour of
+departure and activity at both ends.</figcaption>
+</figure>
+<h3 id="where-the-boundaries-diverge">4.4 Where the boundaries
+diverge</h3>
+<p>Six cases, all from the 2021 matrix and the heuristic (Figure
+10).</p>
+<ol type="1">
+<li><em>Attachment without adjacency.</em> Flows alone leave 26 of 235
+areas in more than one piece, with 79 units cut off. The largest piece
+is on the Wirral. It joins the Liverpool area across the Mersey, which a
+tunnel crosses and the polygons do not.</li>
+<li><em>Repair.</em> After the repair the piece belongs to an adjacent
+area. Self-containment changes in the third decimal (0.695 to 0.696).
+The repair enforces polygon adjacency; in case 1 that may be the wrong
+model of the ground.</li>
+<li><em>Islands.</em> 3 areas keep a piece, 13 units in all, that
+touches no unit of another area. Anglesey is one. Queen adjacency ends
+at the shore.</li>
+<li><em>An official area inside a larger one.</em> The delimited London
+area contains whole official areas; for such an area omission is small
+and commission near 1.</li>
+<li><em>An official area cut into several.</em> The best match holds
+less than half of the employed residents of the official area.</li>
+<li><em>A unit the official boundary cuts.</em> 332 units lie in two or
+more official areas. No partition of MSOAs can reproduce the official
+map exactly.</li>
+</ol>
+<figure>
+<img src="../figures/uk_edge_cases.png"
+alt="Figure 10. Six cases of boundary divergence." />
+<figcaption aria-hidden="true">Figure 10. Six cases of boundary
+divergence.</figcaption>
+</figure>
+<h3 id="bands-without-pairs-serbia">4.5 Bands without pairs: Serbia</h3>
+<p>The Serbian census publishes, per municipality, daily migrants by
+destination band: same municipality, another municipality of the same
+area, another area, abroad. 795,779 daily migrant workers live in 168
+municipalities; 50.3 % stay in their municipality. Delimitation is not
+possible. Band self-containment is.</p>
+<p>A daily migrant is a person who leaves the <em>settlement</em> of
+residence. 8 municipalities consist of one settlement, and their value
+is 0 by definition: the set of municipalities with value 0 and the set
+with one settlement are the same set. They are excluded from the
+statistics below and hatched on the map.</p>
+<p>Over the other 160 municipalities the median is 0.53 for work and
+0.65 for education. The median of the municipal differences is +0.08,
+while the difference of the medians is 0.12. The two series correlate at
+<span class="math inline">\(r\)</span> = 0.80. Education is the only
+non-work purpose in these sources, and it cannot be divided into school
+and university.</p>
+<p>Urbanisation does not explain the difference: <span
+class="math inline">\(r\)</span> = +0.03 against the population share in
+urban classes. The weighting matters for work self-containment: it
+correlates at <span class="math inline">\(r\)</span> = -0.28 with the
+<em>area</em> share in urban classes and at -0.02 with the population
+share. The median area share is 0.014, so the Pearson coefficient rests
+on a few municipalities; the rank correlation is -0.11 for area and
+-0.04 for population.</p>
+<p>The polygon file has lost its text encoding: every non-ASCII letter
+is a question mark. A join by pattern once matched a polygon of 587 km²
+outside the census territory to a Belgrade municipality. The join now
+resolves exact names first and accepts a pattern only if it is unique.
+The result must be a bijection of 168 municipalities and 168
+polygons.</p>
+<figure>
+<img src="../figures/rs_self_containment.png"
+alt="Figure 11. Serbia: band self-containment for work, and education minus work." />
+<figcaption aria-hidden="true">Figure 11. Serbia: band self-containment
+for work, and education minus work.</figcaption>
+</figure>
+<figure>
+<img src="../figures/rs_urbanisation_weighting.png"
+alt="Figure 12. Work self-containment against urbanisation by area and by population." />
+<figcaption aria-hidden="true">Figure 12. Work self-containment against
+urbanisation by area and by population.</figcaption>
+</figure>
+<h3 id="time-without-pairs-japan">4.6 Time without pairs: Japan</h3>
+<p>The people-flow data give presence per 1 km cell by month, by weekday
+or holiday, and by day or night. The municipal product splits presence
+by where people live, in four nested rings. It is named “From-To” and
+holds no origins. On a weekday of October 2019 in Naka-ku, the central
+ward of Hiroshima, 27 % of daytime presence is by residents of the ward;
+at night 68 %. Over 2,804 cells of the prefecture the median day/night
+ratio is 0.89, and 43 % of cells hold more people by day. Totals of
+2019, 2020 and 2021 agree within 0.11 %. The series is normalised, so
+volumes cannot be compared between years. Composition can: the local
+share of weekday daytime presence in the prefecture is 0.632, 0.677 and
+0.681.</p>
+<p>Classes of land use are normative; they need not be natural clusters.
+Studies of phone data nevertheless cluster temporal profiles without
+supervision and name the clusters as land uses <span class="citation"
+data-cites="soto2011 lenormand2015">(<a href="#ref-soto2011"
+role="doc-biblioref">Soto and Frı́as-Martı́nez 2011</a>; <a
+href="#ref-lenormand2015" role="doc-biblioref">Lenormand et al.
+2015</a>)</span>. Lenormand et al. <span class="citation"
+data-cites="lenormand2015">(<a href="#ref-lenormand2015"
+role="doc-biblioref">2015</a>)</span> report that four groups
+consistently appear although the method is unsupervised. The Japanese
+profiles do not support that step. 4,011 cells form one cloud. On the
+four-slot composition, HDBSCAN labels every cell as noise at 9 of 12
+settings. The share of cells in the residual class of a rule-based
+classification moves from 17 % to 65 % with its threshold. The classes
+are declared on two named axes; they are not found (Appendix C).</p>
+<figure>
+<img src="../figures/jp_day_night.png"
+alt="Figure 13. Hiroshima: night presence and the day/night ratio." />
+<figcaption aria-hidden="true">Figure 13. Hiroshima: night presence and
+the day/night ratio.</figcaption>
+</figure>
+<h3 id="audit-of-the-first-version-of-the-slides">4.7 Audit of the first
+version of the slides</h3>
+<p>The first version of the slides (deck v1) carried 56 numbers. The
+pipeline reproduces 46 within the rounding of the slide. The other
+10:</p>
+<ul>
+<li>2 were computed on the 2021 matrix before people coded at their
+residence were removed (district-level score 0.961 and null 0.798;
+corrected 0.947 and 0.657).</li>
+<li>3 are right numbers under wrong names: the two extreme Dutch
+regions, and a correlation of −0.28 that belongs to work
+self-containment and was shown for the education-work difference.</li>
+<li>1 held for part of the settings and was stated without the condition
+(HDBSCAN, “100 % noise”).</li>
+<li>4 differ from the slide beyond its rounding. For one of them no
+variant of the computation gives the slide value (<span
+class="math inline">\(r\)</span> = 0.82 for work against education; the
+pipeline gives 0.80).</li>
+</ul>
+<p>The deck also named the provider of the Japanese data wrongly and
+called a Dutch table discontinued without mentioning its successors. The
+register is <code>docs/RESULTS.md</code>; the list of corrections is
+<code>docs/ERRATA.md</code>.</p>
+<h2 id="discussion">5 Discussion</h2>
+<p><strong>Self-containment needs two baselines.</strong> Eq. 4 costs
+nothing to compute and removes the scale effect. It shows why scores at
+different unit systems cannot be compared: <span
+class="math inline">\(d\)</span> alone is 0.55 for British districts and
+0.44 for Dutch municipalities. The contiguous baseline is dearer and
+tells more. Over three countries and three kinds of count, the part that
+depends on where the boundaries run is 0.06 to 0.22; the rest is scale
+and contiguity. We propose that a delimitation be reported with both
+baselines and its placement term, and that constructions be compared on
+that term.</p>
+<p><strong>Relation to modularity.</strong> Directed modularity <span
+class="citation" data-cites="leicht2008 newman2004">(<a
+href="#ref-leicht2008" role="doc-biblioref">Leicht and Newman 2008</a>;
+<a href="#ref-newman2004" role="doc-biblioref">Newman and Girvan
+2004</a>)</span> subtracts a null that keeps the outflow and inflow of
+every unit, and so discounts strong attractors. The permutation null
+keeps the sizes of the areas and discounts scale. They answer different
+questions; modularity of the heuristic’s 2021 partition is 0.66.
+Modularity has been used to build functional regions <span
+class="citation" data-cites="farmer2011">(<a href="#ref-farmer2011"
+role="doc-biblioref">Farmer and Fotheringham 2011</a>)</span>; Eq. 5 is
+a way to judge regions built by any method.</p>
+<p><strong>A criterion is not a construction, and a construction depends
+on the coding.</strong> The validity rule of the official areas is
+public and simple. Two naive repairs that enforce it give 67 and 61
+areas, and the standard construction gives 59 on the matrix of
+commuters. Counting people who work at home or have no fixed workplace
+as ONS counted them raises the standard construction to 95; the official
+map has 173. The rule leaves the map open, and the construction and the
+code list decide it. The category of the code list that moves the
+diagonal share fivefold between two censuses (Section 4.1) also moves a
+national delimitation from 59 areas to 95. The count of areas and the
+raw score would not have shown what the error matrix and the placement
+term show.</p>
+<p><strong>Old regions as hypotheses.</strong> The decomposition also
+tests an existing regionalisation. The COROP regions were designed as a
+central city with its surrounding area, and they still hold more flow
+than contiguous zonings of the same sizes. They hold less than the
+standard construction on the same pairs, and more than half of them fail
+the validity rule. Other statistical regions drawn on the nodal
+principle can be tested the same way, with current pairs and without
+redrawing them.</p>
+<p><strong>Operator data in the open.</strong> Spain publishes what the
+census does not: the purpose at both ends and the hour. The price is the
+unit of count. A trip is not a person, work is mixed with study, and one
+operator’s customers are expanded to the population. On this matrix the
+standard construction has the largest placement term in Section 4.2,
+0.220. The size thresholds of the rule are counts of people in the
+official method and counts of trips here, so the Spanish areas are not
+labour market areas in the official sense.</p>
+<p><strong>What each source can answer.</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Question</th>
+<th>Source that can answer it</th>
+<th>Check before use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Delimitation, commuting structure</td>
+<td>Census or register pairs at fine units (England and Wales; Dutch
+municipalities from 2021); operator trip matrices (Spain)</td>
+<td>Codes for people without a commute; unit of count; rounding; both
+baselines; contiguity; census date</td>
+</tr>
+<tr>
+<td>Self-containment where no pairs exist</td>
+<td>Destination bands (Serbia)</td>
+<td>Definition of the migrant; units of one settlement</td>
+</tr>
+<tr>
+<td>Presence and trips by time of day</td>
+<td>Operator trip matrices (Spain); panel products (Japan)</td>
+<td>Who is in the sample; expansion; normalisation of volume;
+suppression threshold; meaning of “from”</td>
+</tr>
+<tr>
+<td>Routes of individual recordings</td>
+<td>OSM public traces</td>
+<td>Distinct minutes, not points; concentration; age of traces (Appendix
+A)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Comparison with earlier cross-checks.</strong> Lenormand et
+al. <span class="citation" data-cites="lenormand2014">(<a
+href="#ref-lenormand2014" role="doc-biblioref">2014</a>)</span> found
+that mobile phone, social media and census sources agree on aggregate
+flows in two Spanish cities. Our result does not contradict theirs. It
+concerns the step after the flows. Partitions built on one matrix by
+rules of the same family already disagree at an adjusted Rand index of
+0.67. On the Spanish matrix the heuristic and the standard construction
+agree at 0.59.</p>
+<h2 id="limitations">6 Limitations</h2>
+<ol type="1">
+<li><strong>Three countries, three kinds of count.</strong> Persons at a
+census, employee jobs with a modelled place of work, and expanded trips.
+Eq. 5 compares partitions within a matrix. Magnitudes across countries
+mix unit systems and kinds of count.</li>
+<li><strong>The 2021 census day.</strong> 21 March 2021 was a lockdown
+day. People with a fixed workplace on that day are not a random part of
+the workforce. Comparisons with the official map use 2011.</li>
+<li><strong>Units and official blocks.</strong> Official British areas
+are assigned to MSOAs by plurality; 332 units are cut. Agreement values
+carry this error and cannot reach 1.</li>
+<li><strong>The contiguous null has a known distribution, not the
+uniform one.</strong> The spanning-tree distribution favours compact
+areas. If the uniform distribution holds less flow than this ensemble,
+the contiguity part is overstated and the placement part understated.
+Sizes are held within 5 %, and areas in several pieces are joined by one
+edge, which lets the chain move units across water.</li>
+<li><strong>The official algorithm was not run.</strong> We ran the open
+implementation of the published method. Its outputs were reported as not
+wholly comparable with the production code <span class="citation"
+data-cites="eurostat2020lma">(<a href="#ref-eurostat2020lma"
+role="doc-biblioref">Eurostat 2020</a>)</span>, and the official map was
+cleaned by a secondary process. The 2021 matrix was not run through
+it.</li>
+<li><strong>Eq. 6 is our reading.</strong> The publication gives the two
+end points of the trade-off. The linear form between them is an
+assumption, and size is measured by employed residents in the matrix,
+not by the economically active population. LabourMarketAreas applies its
+own validity function with the same four parameters, so some of its
+areas fail Eq. 6.</li>
+<li><strong>Dutch pairs.</strong> Jobs, not persons; the place of work
+is modelled; pairs are rounded to 100 jobs and retain 95.6 % of jobs;
+all figures are provisional.</li>
+<li><strong>Spanish trips.</strong> Trips, not persons; work mixed with
+study; one operator; five weekdays. The heuristic’s parameters and the
+size thresholds of the rule were set for counts of people.</li>
+<li><strong>GHSL epoch.</strong> The rasters are the 2030 projection of
+release R2023A. Their population over the 168 municipalities is 6.87
+million, about 3 % above the census.</li>
+<li><strong>The Japanese panel.</strong> Who is in the panel and how it
+is expanded is not published. Cells under 10 people are absent, which
+removes sparsely populated cells from every ratio.</li>
+<li><strong>Thresholds are choices.</strong> <span
+class="math inline">\(q\)</span>, <span
+class="math inline">\(m\)</span>, <span
+class="math inline">\(t\)</span>, the ratio <span
+class="math inline">\(r\)</span> and the minimum of 100 are declared
+values. Section 4.3 and Appendix C show what moves when they move.</li>
+</ol>
+<h2 id="future-work">7 Future work</h2>
+<ul>
+<li>LabourMarketAreas on the 2021 matrix and on the Dutch series 2021 to
+2024, to see whether changes between years exceed the change from
+rounding.</li>
+<li>The fine-tuning functions of the package, which restore contiguity,
+in the decomposition beside the raw output.</li>
+<li>The Spanish matrix of recurrent mandatory mobility, which counts
+persons by the number of days on which they make a trip <span
+class="citation" data-cites="mitms2024metodologia">(<a
+href="#ref-mitms2024metodologia" role="doc-biblioref">Ministerio de
+Transportes y Movilidad Sostenible 2024</a>)</span>. It would bring the
+Spanish case closer to the census definition.</li>
+<li>Other ensembles of contiguous partitions, and several starting
+partitions per chain.</li>
+<li>Japanese census commuting pairs for Hiroshima, to set band-based
+presence beside pair-based commuting in one city.</li>
+<li>GHSL epoch 2020.</li>
+</ul>
+<h2 id="conclusion">8 Conclusion</h2>
+<p>Open sources of mobility differ in what they omit, and the omission
+is found in the code list and the definitions, not in the file. Where
+pairs exist, most of the self-containment of a functional-area map is
+produced by the sizes of the areas and by their contiguity. The part
+that depends on the position of the boundaries is 0.06 to 0.22 in three
+countries, and no construction leads on it everywhere. The coding of the
+source matters to a delimitation, not only to an indicator: counting
+people who work at home or have no fixed workplace at their residence
+changes the standard construction for England and Wales from 59 areas to
+95. The placement term, an error matrix against a reference counted in
+people, and the coding of the matrix are what we propose to report with
+any delimitation.</p>
+<h2 id="data-and-code-availability">Data and code availability</h2>
+<p>Code (MIT), text and figures (CC BY 4.0), parameters, tests and
+result tables: <a href="https://github.com/m-erts/urban-functional-maps"
+class="uri">https://github.com/m-erts/urban-functional-maps</a>. Input
+data are open and are fetched from their publishers;
+<code>data/manifest.yaml</code> lists address, licence and checksum of
+every file. <code>make all</code> regenerates every table, figure and
+number; <code>make lma</code> reruns the Coombes-Bond step in R. Spanish
+results: Basado en datos abiertos Ministerio de Transportes y Movilidad
+Sostenible (<a href="https://www.transportes.gob.es/"
+class="uri">https://www.transportes.gob.es/</a>). Dutch results: source
+CBS.</p>
+<h2 id="statements">Statements</h2>
+<p><strong>Funding.</strong> None. <strong>Competing interests.</strong>
+None declared. <strong>Use of AI tools.</strong> The code was written
+and the text drafted with the assistance of a large language model
+(Claude, Anthropic). The author reviewed the code, the results and the
+text and is responsible for them. <strong>Kosovo*.</strong> The 2022
+census of Serbia does not cover Kosovo*. * This designation is without
+prejudice to positions on status, and is in line with UNSCR 1244/1999
+and the ICJ Opinion on the Kosovo declaration of independence.</p>
+<h2 id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+role="list">
+<div id="ref-adolfsson2019" class="csl-entry" role="listitem">
+Adolfsson, Andreas, Margareta Ackerman, and Naomi C. Brownstein. 2019.
+<span>“To Cluster, or Not to Cluster: An Analysis of Clusterability
+Methods.”</span> <em>Pattern Recognition</em> 88: 13–26. <a
+href="https://doi.org/10.1016/j.patcog.2018.10.026">https://doi.org/10.1016/j.patcog.2018.10.026</a>.
+</div>
+<div id="ref-ahas2010" class="csl-entry" role="listitem">
+Ahas, Rein, Siiri Silm, Olle Järv, Erki Saluveer, and Margus Tiru. 2010.
+<span>“Using Mobile Positioning Data to Model Locations Meaningful to
+Users of Mobile Phones.”</span> <em>Journal of Urban Technology</em> 17
+(1): 3–27. <a
+href="https://doi.org/10.1080/10630731003597306">https://doi.org/10.1080/10630731003597306</a>.
+</div>
+<div id="ref-campello2013" class="csl-entry" role="listitem">
+Campello, Ricardo J. G. B., Davoud Moulavi, and Joerg Sander. 2013.
+<span>“Density-Based Clustering Based on Hierarchical Density
+Estimates.”</span> In <em>Advances in Knowledge Discovery and Data
+Mining: 17th Pacific-Asia Conference, PAKDD 2013, Gold Coast, Australia,
+April 14-17, 2013, Proceedings, Part II</em>, edited by Jian Pei,
+Vincent S. Tseng, Longbing Cao, Hiroshi Motoda, and Guandong Xu, vol.
+7819. Lecture Notes in Computer Science. Springer Berlin Heidelberg. <a
+href="https://doi.org/10.1007/978-3-642-37456-2_14">https://doi.org/10.1007/978-3-642-37456-2_14</a>.
+</div>
+<div id="ref-cannon2026" class="csl-entry" role="listitem">
+Cannon, Sarah, Moon Duchin, Dana Randall, and Parker Rule. 2026.
+<span>“Spanning Trees and Redistricting: New Methods for Sampling and
+Validation.”</span> <em>SIAM Review</em> 68 (2): 349–81. <a
+href="https://doi.org/10.1137/24M166944X">https://doi.org/10.1137/24M166944X</a>.
+</div>
+<div id="ref-casado2011" class="csl-entry" role="listitem">
+Casado-Díaz, José M., and Mike Coombes. 2011. <span>“The Delineation of
+21st Century Local Labour Market Areas: A Critical Review and a Research
+Agenda.”</span> <em>Bolet<span>í</span>n de La Asociaci<span>ó</span>n
+de Ge<span>ó</span>grafos Espa<span>ñ</span>oles</em>, no. 57: 7–32. <a
+href="https://bage.age-geografia.es/ojs/index.php/bage/article/view/1390">https://bage.age-geografia.es/ojs/index.php/bage/article/view/1390</a>.
+</div>
+<div id="ref-cbs85481ned" class="csl-entry" role="listitem">
+Centraal Bureau voor de Statistiek. 2025. <em>Werknemersbanen En
+Reisafstand; Woon- En Werkregio</em>. StatLine table 85481NED. <a
+href="https://www.cbs.nl/nl-nl/cijfers/detail/85481NED">https://www.cbs.nl/nl-nl/cijfers/detail/85481NED</a>.
+</div>
+<div id="ref-congalton1991" class="csl-entry" role="listitem">
+Congalton, Russell G. 1991. <span>“A Review of Assessing the Accuracy of
+Classifications of Remotely Sensed Data.”</span> <em>Remote Sensing of
+Environment</em> 37 (1): 35–46. <a
+href="https://doi.org/10.1016/0034-4257(91)90048-B">https://doi.org/10.1016/0034-4257(91)90048-B</a>.
+</div>
+<div id="ref-coombes1986" class="csl-entry" role="listitem">
+Coombes, M. G., A. E. Green, and S. Openshaw. 1986. <span>“An Efficient
+Algorithm to Generate Official Statistical Reporting Areas: The Case of
+the 1984 <span class="nocase">Travel-to-Work Areas</span> Revision in
+<span>Britain</span>.”</span> <em>Journal of the Operational Research
+Society</em> 37 (10): 943–53. <a
+href="https://doi.org/10.1057/jors.1986.163">https://doi.org/10.1057/jors.1986.163</a>.
+</div>
+<div id="ref-coombes2008" class="csl-entry" role="listitem">
+Coombes, Mike, and Steve Bond. 2008. <em>Travel-to-Work Areas: The 2007
+Review</em>. Office for National Statistics.
+</div>
+<div id="ref-coombes2012study" class="csl-entry" role="listitem">
+Coombes, Mike, José M. Casado-Dı́az, Lucas Martı́nez-Bernabeu, and
+Florabela Carausu. 2012. <em>Study on Comparable Labour Market Areas –
+Final Research Report</em>. Final research report, version 1.0.
+Eurostat. <a
+href="https://www.istat.it/wp-content/uploads/2024/02/Final-Report_LMA-v1-0-17102012.pdf">https://www.istat.it/wp-content/uploads/2024/02/Final-Report_LMA-v1-0-17102012.pdf</a>.
+</div>
+<div id="ref-coombes2015" class="csl-entry" role="listitem">
+Coombes, Mike, and Office for National Statistics. 2015. <em>Travel to
+Work Areas</em>. CURDS Research Report RR2015/05. Centre for Urban;
+Regional Development Studies (CURDS), Newcastle University. <a
+href="https://www.ncl.ac.uk/mediav8/centre-for-urban-and-regional-development-studies/files/Travel-to-Work-Areas.pdf">https://www.ncl.ac.uk/mediav8/centre-for-urban-and-regional-development-studies/files/Travel-to-Work-Areas.pdf</a>.
+</div>
+<div id="ref-deford2021" class="csl-entry" role="listitem">
+DeFord, Daryl, Moon Duchin, and Justin Solomon. 2021.
+<span>“Recombination: A Family of <span>M</span>arkov Chains for
+Redistricting.”</span> <em>Harvard Data Science Review</em> 3 (1). <a
+href="https://doi.org/10.1162/99608f92.eb30390f">https://doi.org/10.1162/99608f92.eb30390f</a>.
+</div>
+<div id="ref-dijkstra2021" class="csl-entry" role="listitem">
+Dijkstra, Lewis, Aneta J. Florczyk, Sergio Freire, et al. 2021.
+<span>“Applying the <span class="nocase">Degree of Urbanisation</span>
+to the Globe: A New Harmonised Definition Reveals a Different Picture of
+Global Urbanisation.”</span> <em>Journal of Urban Economics</em> 125:
+103312. <a
+href="https://doi.org/10.1016/j.jue.2020.103312">https://doi.org/10.1016/j.jue.2020.103312</a>.
+</div>
+<div id="ref-dijkstra2019" class="csl-entry" role="listitem">
+Dijkstra, Lewis, Hugo Poelman, and Paolo Veneri. 2019. <em>The
+<span>EU-OECD</span> Definition of a Functional Urban Area</em>. OECD
+Regional Development Working Papers 2019/11. OECD Publishing. <a
+href="https://doi.org/10.1787/d58cb34d-en">https://doi.org/10.1787/d58cb34d-en</a>.
+</div>
+<div id="ref-eurostat2020lma" class="csl-entry" role="listitem">
+Eurostat. 2020. <em>European Harmonised Labour Market Areas —
+Methodology on Functional Geographies with Potential — 2020
+Edition</em>. Edited by Valeriya Angelova-Tosheva. Statistical Working
+Papers. Publications Office of the European Union. <a
+href="https://doi.org/10.2785/328723">https://doi.org/10.2785/328723</a>.
+</div>
+<div id="ref-multimno" class="csl-entry" role="listitem">
+Eurostat. 2025. <em>Multi-MNO Project: Open-Source Reference Pipeline
+for Statistics from Mobile Network Operator Data</em>. <a
+href="https://github.com/eurostat/multimno">https://github.com/eurostat/multimno</a>.
+</div>
+<div id="ref-farmer2011" class="csl-entry" role="listitem">
+Farmer, Carson J Q, and A Stewart Fotheringham. 2011.
+<span>“Network-Based Functional Regions.”</span> <em>Environment and
+Planning A</em> 43 (11): 2723–41. <a
+href="https://doi.org/10.1068/a44136">https://doi.org/10.1068/a44136</a>.
+</div>
+<div id="ref-fifield2020" class="csl-entry" role="listitem">
+Fifield, Benjamin, Michael Higgins, Kosuke Imai, and Alexander Tarr.
+2020. <span>“Automated Redistricting Simulation Using
+<span>M</span>arkov Chain <span>M</span>onte <span>C</span>arlo.”</span>
+<em>Journal of Computational and Graphical Statistics</em> 29 (4):
+715–28. <a
+href="https://doi.org/10.1080/10618600.2020.1739532">https://doi.org/10.1080/10618600.2020.1739532</a>.
+</div>
+<div id="ref-fotheringham1991" class="csl-entry" role="listitem">
+Fotheringham, A S, and D W S Wong. 1991. <span>“The Modifiable Areal
+Unit Problem in Multivariate Statistical Analysis.”</span>
+<em>Environment and Planning A</em> 23 (7): 1025–44. <a
+href="https://doi.org/10.1068/a231025">https://doi.org/10.1068/a231025</a>.
+</div>
+<div id="ref-franconi2016istat" class="csl-entry" role="listitem">
+Franconi, Luisa, Michele D’Alò, and Daniela Ichim. 2016. <em>Istat
+Implementation of the Algorithm to Develop Labour Market Areas</em>.
+Technical Report, version 1.0. Istat – Italian National Institute of
+Statistics. <a
+href="https://www.istat.it/wp-content/uploads/2016/03/Description-of-the-LabourMarketAreas-algorithm.pdf">https://www.istat.it/wp-content/uploads/2016/03/Description-of-the-LabourMarketAreas-algorithm.pdf</a>.
+</div>
+<div id="ref-franconi2017" class="csl-entry" role="listitem">
+Franconi, Luisa, Daniela Ichim, and Michele D’Aló. 2017. <span>“Labour
+Market Areas for Territorial Policies: Tools for a <span>European</span>
+Approach.”</span> <em>Statistical Journal of the IAOS</em> 33 (3):
+585–91. <a
+href="https://doi.org/10.3233/SJI-160343">https://doi.org/10.3233/SJI-160343</a>.
+</div>
+<div id="ref-geweke1992" class="csl-entry" role="listitem">
+Geweke, John. 1992. <span>“Evaluating the Accuracy of Sampling-Based
+Approaches to the Calculation of Posterior Moments.”</span> In
+<em>Bayesian Statistics 4</em>, edited by J. M. Bernardo, J. O. Berger,
+A. P. Dawid, and A. F. M. Smith. Oxford University Press. <a
+href="https://doi.org/10.1093/oso/9780198522669.003.0010">https://doi.org/10.1093/oso/9780198522669.003.0010</a>.
+</div>
+<div id="ref-hill1973" class="csl-entry" role="listitem">
+Hill, M. O. 1973. <span>“Diversity and Evenness: A Unifying Notation and
+Its Consequences.”</span> <em>Ecology</em> 54 (2): 427–32. <a
+href="https://doi.org/10.2307/1934352">https://doi.org/10.2307/1934352</a>.
+</div>
+<div id="ref-hopkins1954" class="csl-entry" role="listitem">
+Hopkins, Brian, and J. G. Skellam. 1954. <span>“A New Method for
+Determining the Type of Distribution of Plant Individuals.”</span>
+<em>Annals of Botany</em> 18 (2): 213–27. <a
+href="https://doi.org/10.1093/oxfordjournals.aob.a083391">https://doi.org/10.1093/oxfordjournals.aob.a083391</a>.
+</div>
+<div id="ref-hubert1985" class="csl-entry" role="listitem">
+Hubert, Lawrence, and Phipps Arabie. 1985. <span>“Comparing
+Partitions.”</span> <em>Journal of Classification</em> 2 (1): 193–218.
+<a
+href="https://doi.org/10.1007/BF01908075">https://doi.org/10.1007/BF01908075</a>.
+</div>
+<div id="ref-lma_package" class="csl-entry" role="listitem">
+Ichim, Daniela, Luisa Franconi, Michele D’Alò, and Guido van den Heuvel.
+2023. <em><span>LabourMarketAreas</span>: Identification, Tuning,
+Visualisation and Analysis of Labour Market Areas</em>. The R
+Foundation; CRAN: Contributed Packages. <a
+href="https://doi.org/10.32614/CRAN.package.LabourMarketAreas">https://doi.org/10.32614/CRAN.package.LabourMarketAreas</a>.
+</div>
+<div id="ref-iso19157" class="csl-entry" role="listitem">
+International Organization for Standardization. 2013.
+<em><span>ISO</span> 19157:2013 Geographic Information – Data
+Quality</em>. ISO.
+</div>
+<div id="ref-jaccard1912" class="csl-entry" role="listitem">
+Jaccard, Paul. 1912. <span>“The Distribution of the Flora in the Alpine
+Zone.”</span> <em>New Phytologist</em> 11 (2): 37–50. <a
+href="https://doi.org/10.1111/j.1469-8137.1912.tb05611.x">https://doi.org/10.1111/j.1469-8137.1912.tb05611.x</a>.
+</div>
+<div id="ref-jost2006" class="csl-entry" role="listitem">
+Jost, Lou. 2006. <span>“Entropy and Diversity.”</span> <em>Oikos</em>
+113 (2): 363–75. <a
+href="https://doi.org/10.1111/j.2006.0030-1299.14714.x">https://doi.org/10.1111/j.2006.0030-1299.14714.x</a>.
+</div>
+<div id="ref-kotov2026" class="csl-entry" role="listitem">
+Kotov, Egor, Eugeni Vidal-Tortosa, Oliva G. Cantú-Ros, et al. 2026.
+<span>“<span class="nocase">spanishoddata</span>: A Package for
+Accessing and Working with <span>Spanish</span> Open Mobility Big
+Data.”</span> <em>Environment and Planning B: Urban Analytics and City
+Science</em> 53 (6): 1398–410. <a
+href="https://doi.org/10.1177/23998083251415040">https://doi.org/10.1177/23998083251415040</a>.
+</div>
+<div id="ref-leicht2008" class="csl-entry" role="listitem">
+Leicht, E. A., and M. E. J. Newman. 2008. <span>“Community Structure in
+Directed Networks.”</span> <em>Physical Review Letters</em> 100 (11):
+118703. <a
+href="https://doi.org/10.1103/PhysRevLett.100.118703">https://doi.org/10.1103/PhysRevLett.100.118703</a>.
+</div>
+<div id="ref-lenormand2014" class="csl-entry" role="listitem">
+Lenormand, Maxime, Miguel Picornell, Oliva G. Cantú-Ros, et al. 2014.
+<span>“Cross-Checking Different Sources of Mobility Information.”</span>
+<em>PLoS ONE</em> 9 (8): e105184. <a
+href="https://doi.org/10.1371/journal.pone.0105184">https://doi.org/10.1371/journal.pone.0105184</a>.
+</div>
+<div id="ref-lenormand2015" class="csl-entry" role="listitem">
+Lenormand, Maxime, Miguel Picornell, Oliva G. Cantú-Ros, et al. 2015.
+<span>“Comparing and Modelling Land Use Organization in Cities.”</span>
+<em>Royal Society Open Science</em> 2 (12): 150449. <a
+href="https://doi.org/10.1098/rsos.150449">https://doi.org/10.1098/rsos.150449</a>.
+</div>
+<div id="ref-martinez2012" class="csl-entry" role="listitem">
+Martínez-Bernabeu, Lucas, Francisco Flórez-Revuelta, and José Manuel
+Casado-Díaz. 2012. <span>“Grouping Genetic Operators for the Delineation
+of Functional Areas Based on Spatial Interaction.”</span> <em>Expert
+Systems with Applications</em> 39 (8): 6754–66. <a
+href="https://doi.org/10.1016/j.eswa.2011.12.026">https://doi.org/10.1016/j.eswa.2011.12.026</a>.
+</div>
+<div id="ref-mitms2024metodologia" class="csl-entry" role="listitem">
+Ministerio de Transportes y Movilidad Sostenible. 2024. <em>Estudio de
+Movilidad de Viajeros de <span class="nocase">á</span>mbito Nacional
+Aplicando La Tecnolog<span>ı́</span>a <span>B</span>ig <span>D</span>ata.
+<span>I</span>nforme Metodol<span>ó</span>gico</em>. Informe
+metodol{\'o}gico, versi{\'o}n 8. Secretar<span>ı́</span>a de Estado de
+Transportes y Movilidad Sostenible, Ministerio de Transportes y
+Movilidad Sostenible. <a
+href="https://www.transportes.gob.es/recursos_mfom/paginabasica/recursos/a3_informe_metodologico_estudio_movilidad_mitms_v8.pdf">https://www.transportes.gob.es/recursos_mfom/paginabasica/recursos/a3_informe_metodologico_estudio_movilidad_mitms_v8.pdf</a>.
+</div>
+<div id="ref-mlit2021" class="csl-entry" role="listitem">
+Ministry of Land, Infrastructure, Transport and Tourism of Japan. 2021.
+<em>Nationwide People-Flow Open Data (1 Km Mesh, by Municipality of
+Residence Ring), 2019–2021</em>. <a
+href="https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto">https://www.geospatial.jp/ckan/dataset/mlit-1km-fromto</a>.
+</div>
+<div id="ref-newman2004" class="csl-entry" role="listitem">
+Newman, M. E. J., and M. Girvan. 2004. <span>“Finding and Evaluating
+Community Structure in Networks.”</span> <em>Physical Review E</em> 69
+(2): 026113. <a
+href="https://doi.org/10.1103/PhysRevE.69.026113">https://doi.org/10.1103/PhysRevE.69.026113</a>.
+</div>
+<div id="ref-oecd2012" class="csl-entry" role="listitem">
+OECD. 2012. <em>Redefining <span>“Urban”</span>: A New Way to Measure
+Metropolitan Areas</em>. OECD Publishing. <a
+href="https://doi.org/10.1787/9789264174108-en">https://doi.org/10.1787/9789264174108-en</a>.
+</div>
+<div id="ref-ons2014wu01" class="csl-entry" role="listitem">
+Office for National Statistics. 2014. <em>2011 Census:
+Origin-Destination Data, Table WU01EW, Location of Usual Residence and
+Place of Work</em>. <a
+href="https://www.nomisweb.co.uk/census/2011/wu01ew">https://www.nomisweb.co.uk/census/2011/wu01ew</a>.
+</div>
+<div id="ref-ons2022quality" class="csl-entry" role="listitem">
+Office for National Statistics. 2022. <em>Travel to Work Quality
+Information for Census 2021</em>. <a
+href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/methodologies/traveltoworkqualityinformationforcensus2021">https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/methodologies/traveltoworkqualityinformationforcensus2021</a>.
+</div>
+<div id="ref-ons2023od" class="csl-entry" role="listitem">
+Office for National Statistics. 2023. <em>User Guide to Census 2021
+Origin-Destination Data, England and Wales</em>. <a
+href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/methodologies/userguidetocensus2021origindestinationdataenglandandwales">https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/methodologies/userguidetocensus2021origindestinationdataenglandandwales</a>.
+</div>
+<div id="ref-ons2016ttwa" class="csl-entry" role="listitem">
+Office for National Statistics, and Mike Coombes. 2016. <em>Travel to
+Work Area Analysis in Great Britain: 2016</em>. Office for National
+Statistics. <a
+href="https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/articles/traveltoworkareaanalysisingreatbritain/2016">https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/articles/traveltoworkareaanalysisingreatbritain/2016</a>.
+</div>
+<div id="ref-openshaw1977" class="csl-entry" role="listitem">
+Openshaw, S. 1977. <span>“A Geographical Solution to Scale and
+Aggregation Problems in Region-Building, Partitioning and Spatial
+Modelling.”</span> <em>Transactions of the Institute of British
+Geographers</em> 2 (4): 459–72. <a
+href="https://doi.org/10.2307/622300">https://doi.org/10.2307/622300</a>.
+</div>
+<div id="ref-openshaw1984" class="csl-entry" role="listitem">
+Openshaw, Stan. 1984. <em>The Modifiable Areal Unit Problem</em>.
+Concepts and Techniques in Modern Geography 38. Geo Books.
+</div>
+<div id="ref-osmtraces" class="csl-entry" role="listitem">
+OpenStreetMap contributors. 2026. <em>Public <span>GPS</span> Traces,
+Retrieved Through the <span>OpenStreetMap</span> <span>API</span>
+V0.6</em>. <a
+href="https://www.openstreetmap.org/traces">https://www.openstreetmap.org/traces</a>.
+</div>
+<div id="ref-ratti2010" class="csl-entry" role="listitem">
+Ratti, Carlo, Stanislav Sobolevsky, Francesco Calabrese, et al. 2010.
+<span>“Redrawing the Map of <span>Great Britain</span> from a Network of
+Human Interactions.”</span> <em>PLoS ONE</em> 5 (12): e14248. <a
+href="https://doi.org/10.1371/journal.pone.0014248">https://doi.org/10.1371/journal.pone.0014248</a>.
+</div>
+<div id="ref-ricciato2020" class="csl-entry" role="listitem">
+Ricciato, Fabio, Giampaolo Lanzieri, Albrecht Wirthmann, and Gerdy
+Seynaeve. 2020. <span>“Towards a Methodological Framework for Estimating
+Present Population Density from Mobile Network Operator Data.”</span>
+<em>Pervasive and Mobile Computing</em> 68: 101263. <a
+href="https://doi.org/10.1016/j.pmcj.2020.101263">https://doi.org/10.1016/j.pmcj.2020.101263</a>.
+</div>
+<div id="ref-rosenberg2007" class="csl-entry" role="listitem">
+Rosenberg, Andrew, and Julia Hirschberg. 2007.
+<span>“<span>V</span>-Measure: A Conditional Entropy-Based External
+Cluster Evaluation Measure.”</span> In <em>Proceedings of the 2007 Joint
+Conference on Empirical Methods in Natural Language Processing and
+Computational Natural Language Learning (<span>EMNLP-CoNLL</span>)</em>,
+edited by Jason Eisner. Association for Computational Linguistics. <a
+href="https://aclanthology.org/D07-1043/">https://aclanthology.org/D07-1043/</a>.
+</div>
+<div id="ref-ghspop2023" class="csl-entry" role="listitem">
+Schiavina, Marcello, Sergio Freire, Alessandra Carioli, and Kytt
+MacManus. 2023. <em><span>GHS-POP R2023A</span> - <span>GHS</span>
+Population Grid Multitemporal (1975-2030)</em>. Dataset; European
+Commission, Joint Research Centre (JRC). <a
+href="https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE">https://doi.org/10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE</a>.
+</div>
+<div id="ref-ghssmod2023" class="csl-entry" role="listitem">
+Schiavina, Marcello, Michele Melchiorri, and Martino Pesaresi. 2023.
+<em><span>GHS-SMOD R2023A</span> - <span>GHS</span> Settlement Layers,
+Application of the <span class="nocase">Degree of Urbanisation</span>
+Methodology (Stage <span>I</span>) to <span>GHS-POP R2023A</span> and
+<span>GHS-BUILT-S R2023A</span>, Multitemporal (1975-2030)</em>.
+Dataset; European Commission, Joint Research Centre (JRC). <a
+href="https://doi.org/10.2905/A0DF7A6F-49DE-46EA-9BDE-563437A6E2BA">https://doi.org/10.2905/A0DF7A6F-49DE-46EA-9BDE-563437A6E2BA</a>.
+</div>
+<div id="ref-soto2011" class="csl-entry" role="listitem">
+Soto, Vı́ctor, and Enrique Frı́as-Martı́nez. 2011. <span>“Automated Land
+Use Identification Using Cell-Phone Records.”</span> <em>Proceedings of
+the 3rd ACM International Workshop on MobiArch</em> (New York, NY, USA),
+17–22. <a
+href="https://doi.org/10.1145/2000172.2000179">https://doi.org/10.1145/2000172.2000179</a>.
+</div>
+<div id="ref-sors2024" class="csl-entry" role="listitem">
+Statistical Office of the Republic of Serbia. 2024. <em>2022 Census of
+Population, Households and Dwellings: Daily Migrations</em>. <a
+href="https://popis2022.stat.gov.rs/sr-latn/popisni-podaci-eksel-tabele/">https://popis2022.stat.gov.rs/sr-latn/popisni-podaci-eksel-tabele/</a>.
+</div>
+<div id="ref-cbs81252" class="csl-entry" role="listitem">
+Statistics Netherlands (CBS). 2016. <em>Banen van Werknemers; Geslacht,
+Leeftijd, Woon- En Werkregio’s (2006–2014), Table 81252NED</em>. <a
+href="https://opendata.cbs.nl/statline/#/CBS/nl/dataset/81252NED">https://opendata.cbs.nl/statline/#/CBS/nl/dataset/81252NED</a>.
+</div>
+<div id="ref-toole2012" class="csl-entry" role="listitem">
+Toole, Jameson L., Michael Ulm, Marta C. González, and Dietmar Bauer.
+2012. <span>“Inferring Land Use from Mobile Phone Activity.”</span>
+<em>Proceedings of the ACM SIGKDD International Workshop on Urban
+Computing</em> (New York, NY, USA), 1–8. <a
+href="https://doi.org/10.1145/2346496.2346498">https://doi.org/10.1145/2346496.2346498</a>.
+</div>
+<div id="ref-wong2009" class="csl-entry" role="listitem">
+Wong, David. 2009. <span>“The Modifiable Areal Unit Problem
+(<span>MAUP</span>).”</span> In <em>The <span>SAGE</span> Handbook of
+Spatial Analysis</em>, edited by A. Stewart Fotheringham and Peter A.
+Rogerson. SAGE Publications, Ltd. <a
+href="https://doi.org/10.4135/9780857020130.n7">https://doi.org/10.4135/9780857020130.n7</a>.
+</div>
+</div>
+<h2 id="appendix-a.-openstreetmap-public-gps-traces">Appendix A.
+OpenStreetMap public GPS traces</h2>
+<p>The OSM API returns 5,000 track points per page; 40 pages per window
+give at most 200,000 points. The sample is measured by the number of
+distinct minutes among the timestamps and by the share of points in the
+busiest H3 cell (resolution 8).</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Window</th>
+<th>Points</th>
+<th>Distinct minutes</th>
+<th>Median year</th>
+<th>Share in busiest cell</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hiroshima</td>
+<td>200,000</td>
+<td>2,395</td>
+<td>2022</td>
+<td>50 %</td>
+</tr>
+<tr>
+<td>Belgrade</td>
+<td>200,000</td>
+<td>5,695</td>
+<td>2014</td>
+<td>35 %</td>
+</tr>
+<tr>
+<td>London, Soho</td>
+<td>185,000</td>
+<td>10,278</td>
+<td>2016</td>
+<td>23 %</td>
+</tr>
+</tbody>
+</table>
+<p>The point count is the limit of the request. Each sample holds a few
+thousand minutes of recording. In Hiroshima 50 % of the points are in
+one cell; in Belgrade the median trace dates from 2014. The first
+version of this paper also compared traces with daytime presence and
+with mapped places by rank correlation. With 11 shared cells the test
+had no power, and it is not reported. The code and the tables remain in
+the repository (<code>outputs/tables/osm_*</code>).</p>
+<figure>
+<img src="../figures/osm_traces.png"
+alt="Figure A1. OSM public GPS traces in three windows." />
+<figcaption aria-hidden="true">Figure A1. OSM public GPS traces in three
+windows.</figcaption>
+</figure>
+<h2
+id="appendix-b.-region-growing-against-the-recombination-chain">Appendix
+B. Region growing against the recombination chain</h2>
+<p>The first version of Eq. 5 used random region growing. Seeds were
+drawn at random, sizes dealt at random, and each region grew from its
+frontier until it reached its size. Walled-in regions stopped early, so
+the random partitions had more equal sizes than the partition under test
+(35.3 effective areas against 24.5 for the heuristic of 2021). The
+recombination chain holds the sizes within 5 %.</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Partition</th>
+<th>Effective areas</th>
+<th>Region growing: mean <span class="math inline">\(SC\)</span>,
+effective areas</th>
+<th>Recombination: mean <span class="math inline">\(SC\)</span>,
+effective areas</th>
+<th>Placement, region growing</th>
+<th>Placement, recombination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>England and Wales 2011, heuristic</td>
+<td>16.4</td>
+<td>0.565, 24.3</td>
+<td>0.554, 16.3</td>
+<td>0.175</td>
+<td>0.186</td>
+</tr>
+<tr>
+<td>England and Wales 2011, official</td>
+<td>35.2</td>
+<td>0.544, 46.0</td>
+<td>0.534, 35.1</td>
+<td>0.205</td>
+<td>0.215</td>
+</tr>
+<tr>
+<td>England and Wales 2021, heuristic</td>
+<td>24.5</td>
+<td>0.565, 35.3</td>
+<td>0.562, 24.8</td>
+<td>0.131</td>
+<td>0.134</td>
+</tr>
+<tr>
+<td>England and Wales 2021, official</td>
+<td>34.7</td>
+<td>0.562, 45.6</td>
+<td>0.553, 34.5</td>
+<td>0.186</td>
+<td>0.196</td>
+</tr>
+</tbody>
+</table>
+<p>Diagnostics of the chains:</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr>
+<th>Partition</th>
+<th>Effective areas, partition</th>
+<th>Effective areas, chain</th>
+<th>Acceptance</th>
+<th>ARI of kept states with the start</th>
+<th>ARI between kept states</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>England and Wales 2011, heuristic</td>
+<td>16.4</td>
+<td>16.3</td>
+<td>100.0 %</td>
+<td>0.06</td>
+<td>0.09</td>
+</tr>
+<tr>
+<td>England and Wales 2011, Coombes-Bond, commuters only</td>
+<td>18.8</td>
+<td>18.8</td>
+<td>100.0 %</td>
+<td>0.21</td>
+<td>0.20</td>
+</tr>
+<tr>
+<td>England and Wales 2011, Coombes-Bond, home workers at home</td>
+<td>25.5</td>
+<td>25.4</td>
+<td>100.0 %</td>
+<td>0.24</td>
+<td>0.22</td>
+</tr>
+<tr>
+<td>England and Wales 2011, official</td>
+<td>35.2</td>
+<td>35.1</td>
+<td>99.4 %</td>
+<td>0.15</td>
+<td>0.15</td>
+</tr>
+<tr>
+<td>England and Wales 2021, heuristic</td>
+<td>24.5</td>
+<td>24.8</td>
+<td>99.6 %</td>
+<td>0.10</td>
+<td>0.10</td>
+</tr>
+<tr>
+<td>England and Wales 2021, official</td>
+<td>34.7</td>
+<td>34.5</td>
+<td>99.4 %</td>
+<td>0.14</td>
+<td>0.14</td>
+</tr>
+<tr>
+<td>Netherlands 2023, heuristic</td>
+<td>3.6</td>
+<td>3.6</td>
+<td>100.0 %</td>
+<td>0.17</td>
+<td>0.16</td>
+</tr>
+<tr>
+<td>Netherlands 2023, Coombes-Bond</td>
+<td>17.3</td>
+<td>17.3</td>
+<td>92.3 %</td>
+<td>0.35</td>
+<td>0.32</td>
+</tr>
+<tr>
+<td>Netherlands 2023, COROP</td>
+<td>28.4</td>
+<td>28.4</td>
+<td>97.4 %</td>
+<td>0.35</td>
+<td>0.31</td>
+</tr>
+<tr>
+<td>Spain 2023, heuristic</td>
+<td>30.5</td>
+<td>30.4</td>
+<td>97.1 %</td>
+<td>0.37</td>
+<td>0.34</td>
+</tr>
+<tr>
+<td>Spain 2023, Coombes-Bond</td>
+<td>120.5</td>
+<td>120.2</td>
+<td>98.2 %</td>
+<td>0.28</td>
+<td>0.24</td>
+</tr>
+</tbody>
+</table>
+<p>Acceptance is the share of steps in which a tree edge qualified. On
+the smaller graphs the start resembles the kept states a little more
+than they resemble each other. A start near the centre of the ensemble
+produces this, and so does a chain that has not forgotten its start. The
+self-containment of the kept states shows no drift (Section 4.2). The
+traces along every chain are in
+<code>outputs/tables/recom_trace_*.csv</code>.</p>
+<h2 id="appendix-c.-temporal-signatures-in-hiroshima">Appendix C.
+Temporal signatures in Hiroshima</h2>
+<p>For each 1 km cell the profile is the mean over the months of 2019 of
+presence in four slots: weekday day, weekday night, holiday day, holiday
+night. 4,011 cells have all four. With <span
+class="math inline">\(x=\log_2\)</span>(weekday day / weekday night),
+<span class="math inline">\(y=\log_2\)</span>(holiday day / weekday day)
+and a ratio <span class="math inline">\(r\)</span>, the rules are office
+if <span class="math inline">\(x\ge\log_2 r\)</span>, leisure if <span
+class="math inline">\(y\ge\log_2 r\)</span>, residential if <span
+class="math inline">\(x\le-\log_2 r\)</span>, else mixed. Where two
+rules hold, the first in this order applies (18 % of cells).</p>
+<p>With <span class="math inline">\(r\)</span> = 1.5: office 25 %,
+leisure 22 %, residential 16 %, mixed 37 %; Shannon entropy 1.34 nats,
+evenness 0.97. As <span class="math inline">\(r\)</span> goes from 1.25
+to 2 the share of mixed cells goes from 17 % to 65 %.</p>
+<p>HDBSCAN <span class="citation" data-cites="campello2013">(<a
+href="#ref-campello2013" role="doc-biblioref">Campello et al.
+2013</a>)</span> was run over 12 settings of
+<code>min_cluster_size</code> (20 to 80) and <code>min_samples</code> (5
+to 15). On the four-slot composition every cell is noise at 9 settings.
+At the others HDBSCAN finds 2 to 8 clusters with 30 to 54 % noise. On
+the two axes the noise share runs from 4 to 93 %, and at the loosest
+setting one cluster holds 95 % of cells. No setting returns a partition
+that resembles four classes. The Hopkins statistic <span
+class="citation" data-cites="hopkins1954">(<a href="#ref-hopkins1954"
+role="doc-biblioref">Hopkins and Skellam 1954</a>)</span> is 0.99: the
+cells are concentrated, which a single dense mode also produces. The
+silhouette of k-means is 0.42 at best (<span
+class="math inline">\(k\)</span> = 2) and 0.36 for <span
+class="math inline">\(k\)</span> = 4.</p>
+<figure>
+<img src="../figures/jp_signatures.png"
+alt="Figure C1. Temporal signatures: the cloud with the thresholds, and the map." />
+<figcaption aria-hidden="true">Figure C1. Temporal signatures: the cloud
+with the thresholds, and the map.</figcaption>
+</figure>
+<figure>
+<img src="../figures/jp_clusterability.png"
+alt="Figure C2. HDBSCAN noise share by setting, and class shares by threshold." />
+<figcaption aria-hidden="true">Figure C2. HDBSCAN noise share by
+setting, and class shares by threshold.</figcaption>
+</figure>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# docker compose run --rm pipeline            full run on ./data
+# docker compose up -d postgis                optional PostGIS for omfm.io.to_postgis
+services:
+  pipeline:
+    build: .
+    volumes: ["./data:/app/data", "./outputs:/app/outputs"]
+    environment: {OMFM_PG: "postgresql://omfm:omfm@postgis:5432/omfm"}
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment: {POSTGRES_USER: omfm, POSTGRES_PASSWORD: omfm, POSTGRES_DB: omfm}
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+volumes: {pgdata: {}}

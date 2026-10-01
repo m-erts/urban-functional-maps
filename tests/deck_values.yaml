@@ -1,0 +1,60 @@
+# Every number of deck v1 (the first version of the slides), with the pipeline key that
+# reproduces it. `tol` is the rounding of the slide. The register (docs/RESULTS.md) is generated
+# from this file and outputs/tables/golden_actual.yaml by `python scripts/run.py register`.
+# `status` is computed unless `force` is set; `force` records a finding about the value of deck v1 itself.
+- {slide: 3,  claim: "Belgrade trace points", deck: 200000, tol: 0, key: osm_bgd_points, note: "Download cap: 40 pages of 5,000 points."}
+- {slide: 3,  claim: "Belgrade unique minutes", deck: 5695, tol: 0, key: osm_bgd_unique_min}
+- {slide: 3,  claim: "Belgrade median trace year", deck: 2014, tol: 0, key: osm_bgd_median_year}
+- {slide: 3,  claim: "Belgrade share of points in one H3 cell", deck: 0.35, tol: 0.005, key: osm_bgd_top_cell}
+- {slide: 3,  claim: "Belgrade Spearman, traces vs Overture places", deck: 0.67, tol: 0.005, key: osm_bgd_spearman, note: "19 shared cells. The Overture cell table was regenerated after the slide was made."}
+- {slide: 3,  claim: "Hiroshima unique minutes", deck: 2395, tol: 0, key: osm_hij_unique_min}
+- {slide: 3,  claim: "Hiroshima share of points in one H3 cell", deck: 0.51, tol: 0.005, key: osm_hij_top_cell}
+- {slide: 3,  claim: "Hiroshima Spearman, traces vs Overture places", deck: 0.80, tol: 0.005, key: osm_hij_spearman, note: "23 shared cells."}
+- {slide: 5,  claim: "MSOAs in the 2021 matrix", deck: 7264, tol: 0, key: uk_msoa_n}
+- {slide: 5,  claim: "Commuters with a fixed workplace, 2021", deck: 15100000, tol: 50000, key: uk_fixed_2021}
+- {slide: 6,  claim: "Commuters with a fixed workplace, 2011", deck: 21600000, tol: 50000, key: uk_fixed_2011}
+- {slide: 6,  claim: "Home or no fixed place, 2021", deck: 12600000, tol: 50000, key: uk_home_2021}
+- {slide: 6,  claim: "Home or no fixed place, 2011", deck: 4900000, tol: 50000, key: uk_home_2011}
+- {slide: 6,  claim: "Unit diagonal share 2011", deck: 0.103, tol: 0.0005, key: uk_diag_2011}
+- {slide: 6,  claim: "Unit diagonal share 2021, indicator 1 kept", deck: 0.506, tol: 0.0005, key: uk_diag_2021_naive}
+- {slide: 6,  claim: "Unit diagonal share 2021, indicator 3 only", deck: 0.093, tol: 0.0005, key: uk_diag_2021_clean}
+- {slide: 5,  claim: "Areas from flows only, 2021", deck: 235, tol: 0, key: uk_areas_flows_only_2021}
+- {slide: 5,  claim: "Non-contiguous areas, 2021", deck: 26, tol: 0, key: uk_noncontig_2021}
+- {slide: 5,  claim: "Areas keeping an island after repair", deck: 3, tol: 0, key: uk_islands_2021}
+- {slide: 7,  claim: "Self-containment of areas, 2011", deck: 0.740, tol: 0.0005, key: uk_sc_2011_areas}
+- {slide: 7,  claim: "Null model, 2011", deck: 0.157, tol: 0.0005, key: uk_sc_2011_random}
+- {slide: 7,  claim: "Self-containment of areas, 2021", deck: 0.695, tol: 0.0005, key: uk_sc_2021_areas}
+- {slide: 7,  claim: "Null model, 2021", deck: 0.130, tol: 0.0005, key: uk_sc_2021_random}
+- {slide: 7,  claim: "Excess over the null at MSOA level", deck: 0.58, tol: 0.005, key: uk_excess_msoa_2011, note: "2011 matrix. 2021 gives 0.56."}
+- {slide: 7,  claim: "District level, observed", deck: 0.961, tol: 0.0005, key: uk_district_observed_deck_v1, force: superseded, corrected_key: uk_district_observed_clean, note: "The value of deck v1 is reproduced only on the matrix that still holds indicator 1 (people coded at their residence), with a 0.85 core quantile. On the cleaned matrix with the MSOA rules the value is the corrected one."}
+- {slide: 7,  claim: "District level, null model", deck: 0.798, tol: 0.0015, key: uk_district_random_deck_v1, force: superseded, corrected_key: uk_district_random_clean, note: "Same cause. The null reproduces 69 % of the corrected district score, not 80 %."}
+- {slide: 8,  claim: "Official TTWAs in England and Wales", deck: 167, tol: 0, key: uk_ttwa_official, note: "149 in England and 18 in Wales. Six cross-border areas also hold English or Welsh units: 173 areas are compared."}
+- {slide: 8,  claim: "Areas after the validity rule, greedy merge", deck: 67, tol: 0, key: uk_ttwa_greedy_2011, note: "2011 matrix (197 areas before the rule). The slide set it beside 235, which is the 2021 count; 2021 gives 66."}
+- {slide: 8,  claim: "Employed residents of the London area after the merge", deck: 6100000, tol: 50000, key: uk_ttwa_greedy_largest_2011, note: "2011 matrix."}
+- {slide: 9,  claim: "Serbian municipalities", deck: 168, tol: 0, key: rs_municipalities}
+- {slide: 9,  claim: "Daily migrant workers", deck: 795779, tol: 0, key: rs_workers}
+- {slide: 10, claim: "Share staying in their municipality", deck: 0.503, tol: 0.0005, key: rs_sc_national}
+- {slide: 10, claim: "Median work self-containment", deck: 0.53, tol: 0.005, key: rs_sc_median_work}
+- {slide: 10, claim: "Median education self-containment", deck: 0.65, tol: 0.005, key: rs_sc_median_edu}
+- {slide: 10, claim: "Median of per-municipality gaps, education minus work", deck: 0.08, tol: 0.005, key: rs_gap_median}
+- {slide: 10, claim: "Correlation of education and work self-containment", deck: 0.82, tol: 0.005, key: rs_r_edu_work, note: "Pearson 0.80 and Spearman 0.81 on 160 municipalities; 0.85 if the eight structural zeros are kept. No variant gives 0.82."}
+- {slide: 10, claim: "Single-settlement municipalities", deck: 8, tol: 0, key: rs_single_settlement}
+- {slide: 10, claim: "Gap against urbanisation, population-weighted", deck: 0.03, tol: 0.005, key: rs_r_gap_urb_pop}
+- {slide: 10, claim: "Gap against urbanisation, area-weighted", deck: -0.28, tol: 0.005, key: rs_r_sc_urb_area, force: mislabelled, corrected_key: rs_r_gap_urb_area, note: "-0.28 is the correlation of WORK self-containment with the area share, not of the gap. For the gap the area-weighted value is the corrected one. Rank correlations are near zero for both weightings."}
+- {slide: 11, claim: "Jobs, December 2014", deck: 7540000, tol: 5000, key: nl_jobs_2014}
+- {slide: 11, claim: "Median self-containment of COROP regions", deck: 0.66, tol: 0.005, key: nl_sc_median, note: "Supply side. Two-sided median is 0.656."}
+- {slide: 11, claim: "Share of regions at 0.75 or more", deck: 0.20, tol: 0.005, key: nl_share_pass, note: "Supply side, 8 of 40. Two-sided: 7 of 40."}
+- {slide: 11, claim: "Areas delimited on 40 regions", deck: 2, tol: 0, key: nl_areas}
+- {slide: 11, claim: "Most open region: Delfzijl 0.45", deck: 0.45, tol: 0.005, key: nl_sc_min, force: mislabelled, corrected_key: nl_sc_delfzijl, note: "0.45 is Zaanstreek. Delfzijl en omgeving is the corrected value."}
+- {slide: 11, claim: "Most closed region: Zeeuwsch-Vlaanderen 0.88", deck: 0.88, tol: 0.005, key: nl_sc_max, force: mislabelled, corrected_key: nl_sc_zeeuwsch_vlaanderen, note: "0.88 is Zuid-Limburg. Zeeuwsch-Vlaanderen is the corrected value."}
+- {slide: 12, claim: "Naka-ku, local share of weekday daytime presence", deck: 0.27, tol: 0.005, key: jp_local_share_ward}
+- {slide: 12, claim: "Day/night ratio, upper end of the colour scale", deck: 7.9, tol: 0.05, key: jp_ratio_max, note: "97th percentile of |log2 ratio| in the map window, not the maximum (23.9)."}
+- {slide: 12, claim: "Day/night ratio, lower end of the colour scale", deck: 0.13, tol: 0.005, key: jp_ratio_min, note: "Same; the minimum is 0.07."}
+- {slide: 13, claim: "Cells classed mixed", deck: 155, tol: 0, key: jp_sig_mixed}
+- {slide: 13, claim: "Cells classed residential", deck: 102, tol: 0, key: jp_sig_residential}
+- {slide: 13, claim: "Cells classed leisure", deck: 50, tol: 0, key: jp_sig_leisure}
+- {slide: 13, claim: "Cells classed office", deck: 115, tol: 0, key: jp_sig_office, note: "Reproduced with: four-slot profile, volume = sum of the four means >= 100, map window rather than city limits, precedence office > leisure > residential. None of this was on the slide."}
+- {slide: 13, claim: "HDBSCAN noise share", deck: 1.0, tol: 0, key: jp_hdbscan_comp_noise_max, force: qualified, note: "All noise at 9 of 12 settings on composition profiles; at the other three, 2 to 8 clusters with 30 to 54 % noise. On the two log-ratio axes never all noise."}
+- {slide: 14, claim: "Yearly totals agree within", deck: 0.003, tol: 0.003, key: jp_volume_drift, note: "Largest deviation from the three-year mean over all day types, both products: 0.11 %."}
+- {slide: 14, claim: "Weekday daytime local share 2019", deck: 0.632, tol: 0.0005, key: jp_local_share_2019}
+- {slide: 14, claim: "Weekday daytime local share 2020", deck: 0.677, tol: 0.0005, key: jp_local_share_2020}

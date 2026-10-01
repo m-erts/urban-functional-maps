@@ -1,0 +1,12 @@
+Text, figures, slides and documentation in this repository (docs/, templates/, talk/,
+docs/figures/, README.md) are licensed under the Creative Commons Attribution 4.0
+International licence (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+
+(c) 2026 Marija Ercegovac.
+
+Code is licensed under the MIT licence (LICENSE).
+
+Input data keep the licence of their publisher (docs/DATA_SOURCES.md, data/manifest.yaml).
+Figures and tables derived from them carry the attribution of the source. Tables in
+outputs/tables/osm_* are derived from OpenStreetMap data and are available under the Open
+Database License: https://opendatacommons.org/licenses/odbl/

@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open mobility data for functional-area maps</title>
+<meta name="description" content="What each open mobility source leaves out, and how much of a functional-area map is scale, contiguity and algorithm. Prepared for FOSS4G 2026, Hiroshima.">
+<meta name="author" content="Marija Ercegovac">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Swiss Civic Lab, see DESIGN.md. No shadows, no gradients, no rounded corners. 1 px rules. */
+:root {
+  --canvas: #F8FAFC; --surface: #F1F5F9; --rule: #CBD5E1; --grid: #E2E8F0;
+  --ink: #0F172A; --ink-2: #334155; --muted: #64748B;
+  --eurostat: #1D4ED8; --osm: #15803D; --census: #D97706; --reference: #475569; --artefact: #B91C1C;
+  --eurostat-tint: #DBEAFE; --osm-tint: #DCFCE7; --census-tint: #FEF3C7; --census-mid: #FDE68A;
+  --sans: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", "IBM Plex Mono", Menlo, monospace;
+}
+html.dark {
+  --canvas: #0F172A; --surface: #1E293B; --rule: #334155; --grid: #1E293B;
+  --ink: #F8FAFC; --ink-2: #CBD5E1; --muted: #94A3B8;
+  --eurostat: #3B82F6; --osm: #16A34A; --census: #D97706; --reference: #94A3B8; --artefact: #EF4444;
+  --eurostat-tint: #172554; --osm-tint: #052E16; --census-tint: #451A03; --census-mid: #92400E;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--surface); color: var(--ink); font-family: var(--sans); }
+body { overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: 0 0; }
+.slide {
+  position: absolute; inset: 0; display: none; background: var(--canvas);
+  border: 1px solid var(--rule); padding: 40px 56px 0 68px; font-size: 17px; line-height: 1.45;
+}
+.slide.on { display: block; }
+.slide::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 8px; background: var(--reference); }
+.slide.census::before { background: var(--census); }
+.slide.eurostat::before { background: var(--eurostat); }
+.slide.osm::before { background: var(--osm); }
+.slide.all::before { display: none; }
+.rail { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; display: flex; flex-direction: column; }
+.rail i { flex: 1; }
+.rail .e { background: var(--eurostat); } .rail .o { background: var(--osm); } .rail .c { background: var(--census); }
+
+h1 { font-size: 40px; line-height: 1.12; font-weight: 600; margin: 0 0 14px; letter-spacing: -0.01em; max-width: 1050px; }
+h2 { font-size: 29px; line-height: 1.18; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.005em; max-width: 1100px; }
+.lede { font-size: 17px; color: var(--ink-2); margin: 0 0 18px; max-width: 1060px; }
+p { margin: 0 0 10px; }
+ul, ol { margin: 0 0 10px; padding-left: 20px; }
+li { margin-bottom: 5px; }
+strong { font-weight: 600; }
+a { color: inherit; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+code, .num { font-family: var(--mono); font-size: 0.92em; }
+.small { font-size: 14px; color: var(--ink-2); }
+.muted { color: var(--muted); }
+
+.cols { display: grid; gap: 28px; }
+.c2 { grid-template-columns: 1fr 1fr; }
+.c32 { grid-template-columns: 3fr 2fr; }
+.c23 { grid-template-columns: 2fr 3fr; }
+.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.rule-l { border-left: 1px solid var(--rule); padding-left: 24px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; line-height: 1.32; }
+th, td { text-align: left; vertical-align: top; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); }
+th { font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--ink); }
+td.n, th.n { text-align: right; font-family: var(--mono); font-size: 13.5px; white-space: nowrap; padding-right: 14px; }
+table.dense { font-size: 12.6px; line-height: 1.28; }
+table.dense td, table.dense th { padding: 5px 8px 5px 0; }
+tr.hl td { background: var(--surface); }
+
+.src { display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: baseline; }
+.src.c { background: var(--census); } .src.e { background: var(--eurostat); } .src.o { background: var(--osm); }
+.src.r { background: var(--reference); } .src.x { background: var(--artefact); }
+.yes { font-weight: 600; } .no { color: var(--muted); }
+
+figure { margin: 0; }
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: #F8FAFC; }
+figure.plain img { border: 0; }
+figure img.fit { width: auto; max-width: 100%; max-height: 500px; margin: 0 auto; }
+html.dark figure img { opacity: 0.94; }
+
+.formula { font-family: var(--mono); font-size: 19px; padding: 12px 16px; border: 1px solid var(--rule); border-left: 3px solid var(--ink); margin: 0 0 14px; background: var(--surface); }
+.formula small { display: block; font-family: var(--sans); font-size: 13.5px; color: var(--ink-2); margin-top: 6px; }
+
+/* decomposition bars, drawn in HTML so the numbers are text */
+.bars { display: grid; grid-template-columns: 190px 1fr; row-gap: 12px; column-gap: 14px; align-items: center; font-size: 14.5px; }
+.bar { display: flex; height: 30px; gap: 2px; }
+.bar span { display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; }
+.bar .s { background: var(--rule); color: #0F172A; }
+.bar .k { background: var(--census-mid); color: #0F172A; }
+.bar .p { background: var(--census); color: #fff; }
+.bars.tight { row-gap: 7px; grid-template-columns: 330px 1fr; font-size: 13.5px; }
+.bars.tight .bar { height: 26px; }
+.bar .t { justify-content: flex-start; padding-left: 10px; font-size: 14px; color: var(--ink); flex: 0 0 70px; }
+.key { display: flex; gap: 22px; font-size: 13.5px; color: var(--ink-2); margin-top: 12px; }
+.key i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 9px 0; border-top: 1px solid var(--rule); margin: 0; font-size: 15.5px; }
+.steps li:last-child { border-bottom: 1px solid var(--rule); }
+.steps li b { font-weight: 600; color: var(--ink-2); }
+
+footer { position: absolute; left: 68px; right: 56px; bottom: 0; height: 40px; border-top: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--muted); gap: 24px; }
+footer .attr { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+footer .pg { font-family: var(--mono); white-space: nowrap; }
+
+@media print {
+  @page { size: 1280px 720px; margin: 0; }
+  html, body { background: #fff; overflow: visible; height: auto; }
+  #stage { position: static; transform: none !important; width: 1280px; height: auto; }
+  .slide { display: block; position: relative; width: 1280px; height: 720px; break-after: page; border: 0; }
+}
+</style>
+</head>
+<body>
+<main id="stage">
+
+<!-- 1 -->
+<section class="slide all">
+  <div class="rail"><i class="e"></i><i class="o"></i><i class="c"></i></div>
+  <div style="padding-top:96px">
+    <h1>Open mobility data for functional-area maps</h1>
+    <p class="lede" style="font-size:22px; max-width:900px">What each source leaves out, and how much of the result is scale, contiguity and algorithm.</p>
+    <p style="margin-top:44px">Marija Ercegovac, independent researcher<br><span class="small num">orcid.org/0009-0008-3040-5515</span></p>
+    <p class="small">Prepared for FOSS4G 2026, Hiroshima. Talk title: Eurostat vs OSM vs Census: Choosing Open Mobility Data for Urban Function Maps. The talk was accepted; I was unable to present it. These are the slides in full.<br>
+    This deck is version 2. Every number in it is written by the pipeline at <span class="num">github.com/m-erts/urban-functional-maps</span>.</p>
+    <table style="width:auto; margin-top:34px" class="dense">
+      <tr><td><span class="src e"></span>Eurostat-type grid and presence statistics</td><td><span class="src o"></span>OpenStreetMap</td><td><span class="src c"></span>Census and register counts</td><td><span class="src r"></span>Method, reference</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">Text and figures CC BY 4.0. Code MIT.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 2 -->
+<section class="slide all">
+  <div class="rail"><i class="e"></i><i class="o"></i><i class="c"></i></div>
+  <h2>Each open source publishes some of three things</h2>
+  <p class="lede">Pairs, purpose, time. The missing one is not an error in the file. It is found in the code list and the definitions.</p>
+  <table>
+    <tr><th>Source</th><th>Origin-destination pairs</th><th>Trip purpose</th><th>Time of day or week</th><th>What the name suggests</th></tr>
+    <tr><td><span class="src c"></span>Census, England and Wales 2011, 2021</td><td class="yes">full matrix, {{uk_msoa_n:,}} units</td><td>work</td><td class="no">none</td><td>a commuting matrix. In 2021, {{uk_home_share_2021*100:.0f}} % of its people are coded at home</td></tr>
+    <tr><td><span class="src c"></span>Register, Netherlands 2023</td><td class="yes">full matrix, {{nl23_units}} municipalities</td><td>jobs of employees</td><td class="no">none</td><td>pairs to the nearest 100 jobs; place of work modelled. The 2014 table has only {{nl_regions}} x {{nl_regions}} regions of 1970</td></tr>
+    <tr><td><span class="src e"></span>Operator trips, Spain 2023</td><td class="yes">full matrix, {{es_zones_spain:,}} districts</td><td class="yes">activity at both ends</td><td class="yes">hour of departure</td><td>trips of one operator's customers, expanded. "Work" includes study</td></tr>
+    <tr><td><span class="src c"></span>Census, Serbia 2022</td><td class="no">none: 4 nested bands</td><td>work; education as one number</td><td class="no">none</td><td>"daily migrations". A migrant leaves the settlement, not the municipality</td></tr>
+    <tr><td><span class="src e"></span>People-flow panel, Japan 2019 to 2021</td><td class="no">none: 4 nested rings</td><td class="no">none: presence</td><td class="yes">month, day type, day or night</td><td>"From-To". It holds no origins, and it is not operator data</td></tr>
+    <tr><td><span class="src o"></span>OSM public GPS traces</td><td>trajectories of contributors</td><td class="no">none</td><td>timestamps</td><td>200,000 points. {{osm_hij_unique_min:,}} minutes of recording</td></tr>
+  </table>
+  <p class="small" style="margin-top:14px">Eurostat statistics from mobile network operators: a published method and open reference code (Multi-MNO), no cross-country dataset.</p>
+  <footer><span class="attr">ISO 19157 names the element nobody computes: usability, fitness for a stated purpose.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 3 -->
+<section class="slide all">
+  <div class="rail"><i class="e"></i><i class="o"></i><i class="c"></i></div>
+  <h2>The sources on six axes</h2>
+  <table class="dense">
+    <tr><th>Source</th><th>Spatial resolution</th><th>Temporal lag</th><th>Semantic depth</th><th>Licence</th><th>MAUP sensitivity</th><th>Cost to compute</th></tr>
+    <tr><td><span class="src c"></span>Census pairs, England and Wales</td><td>{{uk_msoa_n:,}} polygons of 5,000 to 15,000 residents</td><td>2.6 years (census March 2021, file October 2023)</td><td>work; place-of-work indicator of 4 categories</td><td>OGL v3</td><td>measured: scale gives {{uk_null_share_msoa_2021*100:.0f}} % of the score at MSOA, {{uk_district_null_share_clean*100:.0f}} % at district level</td><td>1.8 M pairs; permutation 20 ms; contiguous partition 0.2 s</td></tr>
+    <tr><td><span class="src c"></span>Census bands, Serbia</td><td>{{rs_municipalities}} polygons, 4 destination bands</td><td>1.8 years</td><td>work; education</td><td>SORS terms</td><td>not testable, one level; {{rs_single_settlement}} units are 0 by definition</td><td>seconds</td></tr>
+    <tr><td><span class="src c"></span>Register pairs, Netherlands 2023</td><td>{{nl23_units}} municipalities; pairs to 100 jobs</td><td>2 years; provisional</td><td>jobs of employees; place of work modelled</td><td>CC BY 4.0</td><td>measured: scale {{dec_nl_2023_corop_share_scale*100:.0f}} %, contiguity {{dec_nl_2023_corop_share_contiguity*100:.0f}} % of the COROP score</td><td>10,000 pairs; Coombes-Bond {{nl23_lma_seconds:.0f}} s</td></tr>
+    <tr><td><span class="src e"></span>Operator trips, Spain 2023</td><td>{{es_zones_spain:,}} districts</td><td>a file per day since 2022; method change July 2025</td><td>activity at both ends; hour of departure</td><td>ministry open-data licence</td><td>measured: scale {{dec_es_2023_lma_share_scale*100:.0f}} %, contiguity {{dec_es_2023_lma_share_contiguity*100:.0f}} % of the Coombes-Bond score</td><td>190 MB a day; Coombes-Bond {{es_lma_seconds/60:.0f}} min</td></tr>
+    <tr><td><span class="src e"></span>Presence panel, Japan</td><td>1 km mesh, 6,763 cells</td><td>1 month while it ran; ends December 2021</td><td>no purpose; 3 x 3 time slots; 4 residence rings</td><td>Gov. of Japan Standard Terms 2.0</td><td>regular grid; class shares move with the threshold: mixed {{jp_sig_mixed_share_min*100:.0f}} to {{jp_sig_mixed_share_max*100:.0f}} %</td><td>1.07 M rows; 24 HDBSCAN runs 4 s</td></tr>
+    <tr><td><span class="src o"></span>OSM GPS traces</td><td>points, to H3 resolution 8</td><td>none at upload; median year {{osm_bgd_median_year}} to {{osm_hij_median_year}}</td><td>position, time</td><td>ODbL</td><td>not measured; {{osm_hij_top_cell*100:.0f}} % of points in one cell</td><td>40 requests per window</td></tr>
+    <tr><td><span class="src e"></span>GHS-POP, GHS-SMOD grid</td><td>100 m, 1 km</td><td>epoch 2030 is a projection</td><td>population; 8 settlement classes</td><td>CC BY 4.0</td><td>measured: r = {{rs_r_sc_urb_area:+.2f}} by area, {{rs_r_sc_urb_pop:+.2f}} by population</td><td>75 MB tile; 3 s</td></tr>
+  </table>
+  <footer><span class="attr">Lag: reference date to the date of the published file. Costs measured on a laptop.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 4 -->
+<section class="slide census">
+  <h2>Test 1. Read the code list</h2>
+  <p class="lede">In 2021 people who work at home or have no fixed workplace are rows with workplace = residence. They sit on the diagonal of the matrix.</p>
+  <div class="cols c32">
+    <figure class="plain"><img src="../figures/uk_trap1_code_list_bare.png" alt="Diagonal share 0.103 in 2011, 0.506 in 2021 with indicator 1 kept, 0.093 with indicator 3 only"></figure>
+    <div>
+      <table>
+        <tr><th>Matrix</th><th class="n">people</th><th class="n">diagonal</th></tr>
+        <tr><td>2011, special codes out</td><td class="n">{{uk_fixed_2011:,.0f}}</td><td class="n">{{uk_diag_2011:.3f}}</td></tr>
+        <tr><td>2021, as published</td><td class="n">{{uk_fixed_2021/1e6:.1f}} M + {{uk_home_2021/1e6:.1f}} M</td><td class="n">{{uk_diag_2021_naive:.3f}}</td></tr>
+        <tr class="hl"><td>2021, indicator 3 only</td><td class="n">{{uk_fixed_2021:,.0f}}</td><td class="n">{{uk_diag_2021_clean:.3f}}</td></tr>
+      </table>
+      <p class="small" style="margin-top:14px">The file as published says that local working rose fivefold. With the same treatment in both years it fell from {{uk_diag_2011:.3f}} to {{uk_diag_2021_clean:.3f}}.</p>
+      <p class="small">Census day was 21 March 2021, in a lockdown. The 2021 matrix is used here to study coding and method, not commuting.</p>
+    </div>
+  </div>
+  <footer><span class="attr">Source: Office for National Statistics, WU01EW and ODWP01EW. Open Government Licence v3.0.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <h2>Test 2. Shuffle. The null has a closed form</h2>
+  <p class="lede">Keep the sizes of the areas, permute the labels of the units. What survives is produced by the number and sizes of the areas alone.</p>
+  <div class="cols c2">
+    <div>
+      <div class="formula">E[SC<sub>0</sub>] = d + (1 − d) · h
+        <small>d: share of flows that stay in their unit. h = Σ n<sub>a</sub>(n<sub>a</sub> − 1) / (n (n − 1)): chance that two units share an area. 1/h is the effective number of areas.</small>
+      </div>
+      <table>
+        <tr><th>England and Wales 2021</th><th class="n">MSOA</th><th class="n">district</th></tr>
+        <tr><td>units</td><td class="n">{{uk_msoa_n:,}}</td><td class="n">{{uk_lad_n}}</td></tr>
+        <tr><td>d</td><td class="n">{{uk_diag_2021_clean:.3f}}</td><td class="n">{{uk_lad_diag_fixed:.3f}}</td></tr>
+        <tr><td>areas, same rules</td><td class="n">{{uk_areas_flows_only_2021}}</td><td class="n">{{uk_district_areas_clean}}</td></tr>
+        <tr><td>self-containment</td><td class="n">{{uk_sc_2021_areas:.3f}}</td><td class="n">{{uk_district_observed_clean:.3f}}</td></tr>
+        <tr><td>null, 1,000 permutations</td><td class="n">{{uk_sc_2021_random:.3f}} ± {{uk_sc_2021_random_sd:.3f}}</td><td class="n">{{uk_district_random_clean:.3f}} ± {{uk_district_random_clean_sd:.3f}}</td></tr>
+        <tr><td>null, closed form</td><td class="n">{{uk_sc_2021_closed_form:.3f}}</td><td class="n">n/a</td></tr>
+        <tr class="hl"><td>share of the score that is scale</td><td class="n">{{uk_null_share_msoa_2021*100:.0f}} %</td><td class="n">{{uk_district_null_share_clean*100:.0f}} %</td></tr>
+      </table>
+    </div>
+    <figure class="plain"><img src="../figures/uk_trap2_null_model_bare.png" alt="Observed self-containment against the permutation null for six partitions"></figure>
+  </div>
+  <footer><span class="attr">The higher score is the less informative one. {{uk_areas_flows_only_2021}} areas behave like {{uk_effective_areas_2021:.0f}} equal ones.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 6 -->
+<section class="slide census">
+  <h2>Most of the score is scale and contiguity</h2>
+  <p class="lede">A second null keeps contiguity and the sizes: a recombination chain on spanning trees, {{dec_recom_samples}} contiguous partitions per row, sizes within {{dec_recom_tolerance*100:.0f}} %. What is left is what the position of the boundaries adds.</p>
+  <div class="bars tight">
+    <div>England &amp; Wales 2011, heuristic <span class="muted">{{dec_uk_2011_own_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_uk_2011_own_from_scale:.3f}}">{{dec_uk_2011_own_from_scale:.2f}}</span><span class="k" style="flex:{{dec_uk_2011_own_from_contiguity:.3f}}">{{dec_uk_2011_own_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_uk_2011_own_from_placement:.3f}}">{{dec_uk_2011_own_from_placement:.2f}}</span><span class="t">{{dec_uk_2011_own_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_uk_2011_own_observed:.3f}})"></span></div>
+    <div>England &amp; Wales 2011, Coombes-Bond <span class="muted">{{dec_uk_2011_lma_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_uk_2011_lma_from_scale:.3f}}">{{dec_uk_2011_lma_from_scale:.2f}}</span><span class="k" style="flex:{{dec_uk_2011_lma_from_contiguity:.3f}}">{{dec_uk_2011_lma_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_uk_2011_lma_from_placement:.3f}}">{{dec_uk_2011_lma_from_placement:.2f}}</span><span class="t">{{dec_uk_2011_lma_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_uk_2011_lma_observed:.3f}})"></span></div>
+    <div>England &amp; Wales 2011, Coombes-Bond, ONS coding <span class="muted">{{dec_uk_2011_lma_ons_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_uk_2011_lma_ons_from_scale:.3f}}">{{dec_uk_2011_lma_ons_from_scale:.2f}}</span><span class="k" style="flex:{{dec_uk_2011_lma_ons_from_contiguity:.3f}}">{{dec_uk_2011_lma_ons_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_uk_2011_lma_ons_from_placement:.3f}}">{{dec_uk_2011_lma_ons_from_placement:.2f}}</span><span class="t">{{dec_uk_2011_lma_ons_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_uk_2011_lma_ons_observed:.3f}})"></span></div>
+    <div>England &amp; Wales 2011, official TTWA <span class="muted">{{dec_uk_2011_official_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_uk_2011_official_from_scale:.3f}}">{{dec_uk_2011_official_from_scale:.2f}}</span><span class="k" style="flex:{{dec_uk_2011_official_from_contiguity:.3f}}">{{dec_uk_2011_official_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_uk_2011_official_from_placement:.3f}}">{{dec_uk_2011_official_from_placement:.2f}}</span><span class="t">{{dec_uk_2011_official_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_uk_2011_official_observed:.3f}})"></span></div>
+    <div>England &amp; Wales 2021, heuristic <span class="muted">{{dec_uk_2021_own_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_uk_2021_own_from_scale:.3f}}">{{dec_uk_2021_own_from_scale:.2f}}</span><span class="k" style="flex:{{dec_uk_2021_own_from_contiguity:.3f}}">{{dec_uk_2021_own_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_uk_2021_own_from_placement:.3f}}">{{dec_uk_2021_own_from_placement:.2f}}</span><span class="t">{{dec_uk_2021_own_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_uk_2021_own_observed:.3f}})"></span></div>
+    <div>England &amp; Wales 2021, official TTWA <span class="muted">{{dec_uk_2021_official_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_uk_2021_official_from_scale:.3f}}">{{dec_uk_2021_official_from_scale:.2f}}</span><span class="k" style="flex:{{dec_uk_2021_official_from_contiguity:.3f}}">{{dec_uk_2021_official_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_uk_2021_official_from_placement:.3f}}">{{dec_uk_2021_official_from_placement:.2f}}</span><span class="t">{{dec_uk_2021_official_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_uk_2021_official_observed:.3f}})"></span></div>
+    <div>Netherlands 2023, heuristic <span class="muted">{{dec_nl_2023_own_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_nl_2023_own_from_scale:.3f}}">{{dec_nl_2023_own_from_scale:.2f}}</span><span class="k" style="flex:{{dec_nl_2023_own_from_contiguity:.3f}}">{{dec_nl_2023_own_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_nl_2023_own_from_placement:.3f}}">{{dec_nl_2023_own_from_placement:.2f}}</span><span class="t">{{dec_nl_2023_own_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_nl_2023_own_observed:.3f}})"></span></div>
+    <div>Netherlands 2023, Coombes-Bond <span class="muted">{{dec_nl_2023_lma_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_nl_2023_lma_from_scale:.3f}}">{{dec_nl_2023_lma_from_scale:.2f}}</span><span class="k" style="flex:{{dec_nl_2023_lma_from_contiguity:.3f}}">{{dec_nl_2023_lma_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_nl_2023_lma_from_placement:.3f}}">{{dec_nl_2023_lma_from_placement:.2f}}</span><span class="t">{{dec_nl_2023_lma_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_nl_2023_lma_observed:.3f}})"></span></div>
+    <div>Netherlands 2023, COROP of 1970 <span class="muted">{{dec_nl_2023_corop_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_nl_2023_corop_from_scale:.3f}}">{{dec_nl_2023_corop_from_scale:.2f}}</span><span class="k" style="flex:{{dec_nl_2023_corop_from_contiguity:.3f}}">{{dec_nl_2023_corop_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_nl_2023_corop_from_placement:.3f}}">{{dec_nl_2023_corop_from_placement:.2f}}</span><span class="t">{{dec_nl_2023_corop_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_nl_2023_corop_observed:.3f}})"></span></div>
+    <div>Spain 2023, heuristic <span class="muted">{{dec_es_2023_own_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_es_2023_own_from_scale:.3f}}">{{dec_es_2023_own_from_scale:.2f}}</span><span class="k" style="flex:{{dec_es_2023_own_from_contiguity:.3f}}">{{dec_es_2023_own_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_es_2023_own_from_placement:.3f}}">{{dec_es_2023_own_from_placement:.2f}}</span><span class="t">{{dec_es_2023_own_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_es_2023_own_observed:.3f}})"></span></div>
+    <div>Spain 2023, Coombes-Bond <span class="muted">{{dec_es_2023_lma_areas}} areas</span></div>
+    <div class="bar"><span class="s" style="flex:{{dec_es_2023_lma_from_scale:.3f}}">{{dec_es_2023_lma_from_scale:.2f}}</span><span class="k" style="flex:{{dec_es_2023_lma_from_contiguity:.3f}}">{{dec_es_2023_lma_from_contiguity:.2f}}</span><span class="p" style="flex:{{dec_es_2023_lma_from_placement:.3f}}">{{dec_es_2023_lma_from_placement:.2f}}</span><span class="t">{{dec_es_2023_lma_observed:.3f}}</span><span style="flex:calc(0.90 - {{dec_es_2023_lma_observed:.3f}})"></span></div>
+  </div>
+  <div class="key"><span><i style="background:var(--rule)"></i>scale: random relabelling</span><span><i style="background:var(--census-mid)"></i>contiguity: contiguous zoning of these sizes</span><span><i style="background:var(--census)"></i>placement: where the boundaries run</span></div>
+  <footer><span class="attr">Sources: ONS (OGL v3.0); CBS 85481NED (CC BY 4.0); Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 7 -->
+<section class="slide census">
+  <h2>Test 3. Compare the map, not the count</h2>
+  <p class="lede">One published criterion, four maps. Same algorithm, same parameters: {{uk_lma_areas_2011}} areas from commuters only, {{uk_lma_ons_areas_2011}} when people who work at home or have no fixed workplace are counted at home, as ONS counted them. The official map has {{uk_ttwa_official_touching_ew_2011}}.</p>
+  <figure class="plain"><img src="../figures/uk_trap3_three_maps_bare.png" alt="Heuristic with {{uk_areas_flows_only_2011}} areas, Coombes-Bond with {{uk_lma_areas_2011}} and {{uk_lma_ons_areas_2011}} areas, official TTWA with {{uk_ttwa_official_touching_ew_2011}}" class="fit"></figure>
+  <footer><span class="attr">Source: ONS WU01EW; MSOA 2011 BGC; TTWA 2011 super-generalised boundaries. OGL v3.0. Coombes-Bond: R package LabourMarketAreas 3.4, parameters of the official areas.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 8 -->
+<section class="slide census">
+  <h2>The error matrix, counted in people</h2>
+  <p class="lede">C[a, b] = employed residents who are in delimited area a and in official area b. Everything else is read from it.</p>
+  <div class="cols c2">
+    <div>
+      <div class="formula" style="font-size:16px">IoU(a, b) = C[a,b] / (C[a,·] + C[·,b] − C[a,b])<br>omission(b) = 1 − C[a*,b] / C[·,b]<br>commission(b) = 1 − C[a*,b] / C[a*,·]
+        <small>a* is the delimited area with the highest IoU for official area b. Adjusted Rand index and V-measure come from the same table.</small></div>
+      <table>
+        <tr><th>Construction</th><th class="n">areas</th><th class="n">ARI</th><th class="n">mean IoU</th><th class="n">by km²</th></tr>
+        <tr><td>heuristic</td><td class="n">{{uk_areas_flows_only_2011}}</td><td class="n">{{uk_ari_contiguous_2011:.2f}}</td><td class="n">{{uk_iou_contiguous_2011:.2f}}</td><td class="n">{{uk_iou_area_contiguous_2011:.2f}}</td></tr>
+        <tr><td>rule by greedy merge</td><td class="n">{{uk_ttwa_greedy_2011}}</td><td class="n">{{uk_ari_ttwa_greedy_2011:.2f}}</td><td class="n">{{uk_iou_ttwa_greedy_2011:.2f}}</td><td class="n">{{uk_iou_area_ttwa_greedy_2011:.2f}}</td></tr>
+        <tr><td>rule by dissolution</td><td class="n">{{uk_ttwa_dissolution_2011}}</td><td class="n">{{uk_ari_ttwa_dissolution_2011:.2f}}</td><td class="n">{{uk_iou_ttwa_dissolution_2011:.2f}}</td><td class="n">{{uk_iou_area_ttwa_dissolution_2011:.2f}}</td></tr>
+        <tr><td>Coombes-Bond, commuters only</td><td class="n">{{uk_lma_areas_2011}}</td><td class="n">{{uk_ari_lma_2011:.2f}}</td><td class="n">{{uk_iou_lma_2011:.2f}}</td><td class="n">{{uk_iou_area_lma_2011:.2f}}</td></tr>
+        <tr class="hl"><td>Coombes-Bond, home workers at home</td><td class="n">{{uk_lma_ons_areas_2011}}</td><td class="n">{{uk_ari_lma_ons_2011:.2f}}</td><td class="n">{{uk_iou_lma_ons_2011:.2f}}</td><td class="n">{{uk_iou_area_lma_ons_2011:.2f}}</td></tr>
+      </table>
+      <p class="small" style="margin-top:10px">2011 matrix. On the 2021 matrix dissolution ends with {{uk_ttwa_dissolution_2021}} areas, one of them with {{uk_ttwa_dissolution_largest_share_2021*100:.0f}} % of employed residents.</p>
+    </div>
+    <div>
+      <figure class="plain"><img src="../figures/uk_trap3_agreement_bare.png" alt="Cumulative distribution of IoU and agreement of four constructions with the official areas"></figure>
+      <p class="small" style="margin-top:10px">Naive repairs of the rule move the map away from the official one: under greedy merge the London area holds {{uk_ttwa_greedy_largest_share_2011*100:.0f}} % of England and Wales. Coding home workers as ONS did moves Coombes-Bond from ARI {{uk_ari_lma_2011:.2f}} to {{uk_ari_lma_ons_2011:.2f}}; the heuristic, nearest in count, still agrees best.</p>
+    </div>
+  </div>
+  <footer><span class="attr">Reference: {{uk_ttwa_official_touching_ew_2011}} official TTWA of 2011 that hold units of England or Wales ({{uk_ttwa_official}} + {{uk_ttwa_official_cross_border}} cross-border).</span><span class="pg"></span></footer>
+</section>
+
+<!-- 9 -->
+<section class="slide census">
+  <h2>The same count from different rules</h2>
+  <p class="lede">The number of areas is fixed by two of the three thresholds. {{uk_sweep_near_core_settings}} settings of those two give about {{uk_areas_flows_only_2021}} areas.</p>
+  <div class="cols c32">
+    <figure class="plain"><img src="../figures/uk_trap3_sweep_bare.png" alt="Number of areas over the parameter grid and pairwise agreement of twelve maps"></figure>
+    <table>
+      <tr><th>{{uk_sweep_near_maps}} maps with {{uk_sweep_lo}} to {{uk_sweep_hi}} areas</th><th class="n">min</th><th class="n">median</th><th class="n">max</th></tr>
+      <tr><td>agreement with each other, ARI</td><td class="n">{{uk_sweep_near_ari_min:.2f}}</td><td class="n">{{uk_sweep_near_ari_median:.2f}}</td><td class="n">{{uk_sweep_near_ari_max:.2f}}</td></tr>
+      <tr><td>agreement with official areas, ARI</td><td class="n">{{uk_sweep_near_ari_official_min:.2f}}</td><td class="n"></td><td class="n">{{uk_sweep_near_ari_official_max:.2f}}</td></tr>
+      <tr><td>self-containment</td><td class="n">{{uk_sweep_near_sc_min:.3f}}</td><td class="n"></td><td class="n">{{uk_sweep_near_sc_max:.3f}}</td></tr>
+      <tr><td>areas over the whole grid of {{uk_sweep_grid}}</td><td class="n">{{uk_sweep_areas_min}}</td><td class="n"></td><td class="n">{{uk_sweep_areas_max:,}}</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">A count of areas close to the official count is not evidence of a similar map.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 10 -->
+<section class="slide census">
+  <h2>Where the boundaries diverge: six cases, one by one</h2>
+  <p class="lede">Chosen by rule from the 2021 matrix, not by eye. The next six slides take them in turn.</p>
+  <figure class="plain"><img src="../figures/uk_edge_cases_bare.png" alt="Overview of six cases of boundary divergence" class="fit"></figure>
+  <footer><span class="attr">Light amber: delimited areas. Darker: the area in question. Red: units in question. Black and grey lines: official TTWA 2011.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 11 -->
+<section class="slide census">
+  <h2>Case 1. Attachment without adjacency</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <figure><img src="../figures/uk_edge_case_1_attachment.png" alt="A fragment on the Wirral attached to the Liverpool area across the Mersey"></figure>
+    <ol class="steps">
+      <li><b>Rule</b><span>A unit joins the area that receives the largest share of its outgoing commuters, if that share is 15 % or more. The rule looks at flows only.</span></li>
+      <li><b>Result</b><span>{{uk_case_attach_units}} units with <span class="num">{{uk_case_attach_workers:,.0f}}</span> employed residents join the {{uk_case_attach_area}} area. The nearest unit of that area is <span class="num">{{uk_case_attach_distance_km:.1f}}</span> km away, across water.</span></li>
+      <li><b>Extent</b><span>{{uk_noncontig_2021}} of {{uk_areas_flows_only_2021}} areas are in more than one piece; {{uk_cut_units_2021}} units are cut off.</span></li>
+      <li><b>Reading</b><span>The polygons do not cross the river. A tunnel does. By flows the fragment belongs where the rule put it.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Source: ONS ODWP01EW; MSOA 2021 BGC. OGL v3.0. Red: the fragment. Darker amber: the area it joined.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 12 -->
+<section class="slide census">
+  <h2>Case 2. The repair</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <figure><img src="../figures/uk_edge_case_2_repair.png" alt="The same window after the contiguity repair"></figure>
+    <ol class="steps">
+      <li><b>Rule</b><span>In each area the piece that holds the core stays. Every other piece goes to the adjacent area with the largest two-way flow across the shared border. Adjacency is queen adjacency of the polygons.</span></li>
+      <li><b>Result</b><span>The fragment now belongs to the area around {{uk_case_attach_new_area}}.</span></li>
+      <li><b>Cost</b><span>Self-containment moves from <span class="num">{{uk_sc_2021_areas:.3f}}</span> to <span class="num">{{uk_sc_contiguous_2021:.3f}}</span>.</span></li>
+      <li><b>Reading</b><span>The repair gives a map that can be drawn. In this case it replaces a true functional link with a polygon rule. Both versions are in the tables.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Source: ONS ODWP01EW; MSOA 2021 BGC. OGL v3.0.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 13 -->
+<section class="slide census">
+  <h2>Case 3. An island the repair cannot place</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <figure><img src="../figures/uk_edge_case_3_island.png" alt="Anglesey, attached by flow to an area on the mainland"></figure>
+    <ol class="steps">
+      <li><b>Rule</b><span>A piece with no neighbour in another area has nowhere to go. It stays and is reported.</span></li>
+      <li><b>Result</b><span>{{uk_case_island_units}} units of {{uk_case_island_name}}, <span class="num">{{uk_case_island_workers:,.0f}}</span> employed residents.</span></li>
+      <li><b>Extent</b><span>{{uk_islands_2021}} areas keep such a piece after the repair, {{uk_island_units_2021}} units in all.</span></li>
+      <li><b>Reading</b><span>Polygons end at the shore; two bridges do not count as adjacency. The list of islands is an output of the pipeline, not a defect to hide.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Source: ONS ODWP01EW; MSOA 2021 BGC. OGL v3.0.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 14 -->
+<section class="slide census">
+  <h2>Case 4. An official area inside a larger one</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <figure><img src="../figures/uk_edge_case_4_swallowed.png" alt="Official area Medway inside the delimited London area"></figure>
+    <ol class="steps">
+      <li><b>Official</b><span>{{uk_case_swallowed_name}}, <span class="num">{{uk_case_swallowed_workers:,.0f}}</span> employed residents (black line).</span></li>
+      <li><b>Match</b><span>The delimited area that starts at {{uk_case_swallowed_match}} (darker amber).</span></li>
+      <li><b>Error matrix</b><span>IoU <span class="num">{{uk_case_swallowed_iou:.2f}}</span>. Omission <span class="num">{{uk_case_swallowed_omission*100:.0f}} %</span>: nearly all of the official area is inside the match. Commission <span class="num">{{uk_case_swallowed_commission*100:.0f}} %</span>: nearly all of the match is outside it.</span></li>
+      <li><b>Reading</b><span>The heuristic has no lower bound on self-containment of what it attaches. One strong core takes its whole commuter belt, other labour markets included.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Source: ONS ODWP01EW; MSOA 2021 BGC; TTWA 2011. OGL v3.0.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 15 -->
+<section class="slide census">
+  <h2>Case 5. An official area cut into several</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <figure><img src="../figures/uk_edge_case_5_split.png" alt="Official area Slough and Heathrow divided among five delimited areas"></figure>
+    <ol class="steps">
+      <li><b>Official</b><span>{{uk_case_split_name}}, <span class="num">{{uk_case_split_workers:,.0f}}</span> employed residents (black line).</span></li>
+      <li><b>Match</b><span>{{uk_case_split_parts}} delimited areas hold parts of it. The best one holds <span class="num">{{uk_case_split_held*100:.0f}} %</span> of its employed residents: omission <span class="num">{{uk_case_split_omission:.2f}}</span>.</span></li>
+      <li><b>Error matrix</b><span>IoU <span class="num">{{uk_case_split_iou:.2f}}</span>. Commission is 0: the match lies inside the official area.</span></li>
+      <li><b>Reading</b><span>Several cores pass the inflow quantile here and do not exchange 10 % of their outflow, so they are not merged. The count of areas rises where employment is polycentric.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Source: ONS ODWP01EW; MSOA 2021 BGC; TTWA 2011. OGL v3.0.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 16 -->
+<section class="slide census">
+  <h2>Case 6. A unit the official boundary cuts</h2>
+  <div class="cols c32" style="margin-top:14px">
+    <figure><img src="../figures/uk_edge_case_6_cut_unit.png" alt="An MSOA crossed by an official TTWA boundary"></figure>
+    <ol class="steps">
+      <li><b>Cause</b><span>Official areas are built from blocks smaller than the units of the open matrix.</span></li>
+      <li><b>Result</b><span>{{uk_case_cut_name}}: <span class="num">{{uk_case_cut_share*100:.0f}} %</span> of its blocks lie in the official area it is assigned to (hatched unit, black line).</span></li>
+      <li><b>Extent</b><span>{{uk_msoa_cut_by_ttwa_2021}} of {{uk_msoa_n:,}} units are cut by an official boundary.</span></li>
+      <li><b>Reading</b><span>No partition of these units can reproduce the official map. Agreement values carry this error and cannot reach 1. This is the zoning problem at the level of the unit.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Source: ONS Open Geography, OA 2021 to TTWA 2011 best-fit look-up. OGL v3.0.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 17 -->
+<section class="slide census">
+  <h2>Serbia. Bands instead of pairs</h2>
+  <p class="lede">{{rs_workers:,.0f}} daily migrant workers in {{rs_municipalities}} municipalities. Delimitation is not possible. Band self-containment is, if the definition is respected.</p>
+  <div class="cols c32">
+    <figure class="plain"><img src="../figures/rs_self_containment_bare.png" alt="Serbia: work self-containment and the difference between education and work"></figure>
+    <table>
+      <tr><th></th><th class="n">value</th></tr>
+      <tr><td>stay in their municipality</td><td class="n">{{rs_sc_national*100:.1f}} %</td></tr>
+      <tr><td>median, work</td><td class="n">{{rs_sc_median_work:.2f}}</td></tr>
+      <tr><td>median, education</td><td class="n">{{rs_sc_median_edu:.2f}}</td></tr>
+      <tr><td>median of municipal differences</td><td class="n">{{rs_gap_median:+.2f}}</td></tr>
+      <tr><td>correlation, work and education</td><td class="n">{{rs_r_edu_work:.2f}}</td></tr>
+      <tr class="hl"><td>municipalities of one settlement: value 0 by definition</td><td class="n">{{rs_single_settlement}}</td></tr>
+      <tr><td>polygons joined, one to one</td><td class="n">{{rs_polygons_joined}}</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">Source: SORS, Census 2022; boundaries GeoSrbija. The census does not cover Kosovo*. * UNSCR 1244/1999 and the ICJ Opinion.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 18 -->
+<section class="slide eurostat">
+  <h2>Weight the grid by people, not by pixels</h2>
+  <p class="lede">Degree of urbanisation of a municipality from GHS-SMOD classes, weighted by GHS-POP population. The area-weighted share is the control.</p>
+  <div class="cols c32">
+    <figure class="plain"><img src="../figures/rs_urbanisation_weighting_bare.png" alt="Work self-containment against urban share by area and by population"></figure>
+    <table>
+      <tr><th>Work self-containment against urban share</th><th class="n">Pearson</th><th class="n">Spearman</th></tr>
+      <tr><td>share of area</td><td class="n">{{rs_r_sc_urb_area:+.2f}}</td><td class="n">{{rs_rho_sc_urb_area:+.2f}}</td></tr>
+      <tr class="hl"><td>share of population</td><td class="n">{{rs_r_sc_urb_pop:+.2f}}</td><td class="n">{{rs_rho_sc_urb_pop:+.2f}}</td></tr>
+      <tr><th>Education minus work</th><th class="n"></th><th class="n"></th></tr>
+      <tr><td>share of area</td><td class="n">{{rs_r_gap_urb_area:+.2f}}</td><td class="n"></td></tr>
+      <tr class="hl"><td>share of population</td><td class="n">{{rs_r_gap_urb_pop:+.2f}}</td><td class="n"></td></tr>
+      <tr><td>median share of area in urban classes</td><td class="n">{{rs_area_urb_median:.3f}}</td><td class="n"></td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">GHS-POP and GHS-SMOD R2023A, European Commission JRC, CC BY 4.0. Epoch 2030 is a projection. Source of counts: SORS, Census 2022.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 19b -->
+<section class="slide census">
+  <h2>Netherlands. Do the regions of 1970 still hold their commuters?</h2>
+  <p class="lede">The 2014 table published pairs only between the 40 COROP regions, so it could not test them. Its successor publishes pairs between {{nl23_units}} municipalities.</p>
+  <div class="cols" style="grid-template-columns: 2.3fr 1fr">
+    <figure class="plain"><img src="../figures/nl_2023_maps_bare.png" alt="Netherlands 2023: Coombes-Bond areas, heuristic areas, COROP regions"></figure>
+    <table class="dense">
+      <tr><th>December 2023</th><th class="n">value</th></tr>
+      <tr><td>COROP regions, median self-containment</td><td class="n">{{nl23_corop_sc_median:.2f}}</td></tr>
+      <tr><td>COROP regions valid under the TTWA rule</td><td class="n">{{nl23_corop_valid_share*100:.0f}} %</td></tr>
+      <tr><td>Coombes-Bond on municipal pairs: areas</td><td class="n">{{nl23_lma_areas}}</td></tr>
+      <tr class="hl"><td>its agreement with COROP, ARI</td><td class="n">{{nl23_ari_lma_corop:.2f}}</td></tr>
+      <tr><td>placement term, COROP</td><td class="n">{{dec_nl_2023_corop_from_placement:.3f}}</td></tr>
+      <tr><td>placement term, Coombes-Bond</td><td class="n">{{dec_nl_2023_lma_from_placement:.3f}}</td></tr>
+      <tr><td>jobs retained by the rounded pairs</td><td class="n">{{nl23_retained_total*100:.1f}} %</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">Source: CBS 85481NED, December 2023 (CC BY 4.0); boundaries CBS/PDOK. Pairs to the nearest 100 jobs; place of work modelled by CBS.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 19c -->
+<section class="slide eurostat">
+  <h2>Spain. Pairs, purpose and the hour in one open file</h2>
+  <p class="lede">Trips between {{es_zones_spain:,}} districts by hour and by the activity at both ends, from the data of one operator, expanded to the population.</p>
+  <div class="cols" style="grid-template-columns: 2.3fr 1fr">
+    <figure class="plain"><img src="../figures/es_hourly_bare.png" alt="Spain: trips by hour of departure for four activity pairs"></figure>
+    <table class="dense">
+      <tr><th>Weekdays, October 2023</th><th class="n">value</th></tr>
+      <tr><td>trips a day, all purposes</td><td class="n">{{es_trips_all/1e6:.0f}} M</td></tr>
+      <tr><td>home to work or study, destination not flagged as study</td><td class="n">{{es_trips_home_work/1e6:.2f}} M</td></tr>
+      <tr><td>of these, starting 06:00 to 09:59</td><td class="n">{{es_commute_share_6_9*100:.0f}} %</td></tr>
+      <tr><td>Coombes-Bond areas</td><td class="n">{{es_lma_areas}}</td></tr>
+      <tr><td>heuristic areas</td><td class="n">{{es_own_areas}}</td></tr>
+      <tr class="hl"><td>zones the heuristic leaves out</td><td class="n">{{es_own_unassigned:,}} ({{es_own_unassigned_share*100:.0f}} % of trips)</td></tr>
+      <tr><td>agreement of the two maps, ARI</td><td class="n">{{es_ari_own_lma:.2f}}</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible (transportes.gob.es). Trips, not persons; "work" includes some study.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 19d -->
+<section class="slide eurostat">
+  <h2>Spain. The same two constructions, a different country</h2>
+  <p class="lede">The heuristic, with the parameters set on England and Wales, leaves {{es_own_unassigned_share*100:.0f}} % of trips without an area. Coombes-Bond assigns every district that sends trips and makes {{es_lma_areas}} smaller areas.</p>
+  <figure class="plain"><img src="../figures/es_maps_bare.png" alt="Spain: Coombes-Bond areas and heuristic areas" class="fit"></figure>
+  <footer><span class="attr">Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible. Grey: districts in no area. Canary Islands not shown.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 20 -->
+<section class="slide eurostat">
+  <h2>Japan. Time of day, and nothing else</h2>
+  <p class="lede">Presence per 1 km cell by month, day type, day or night. A panel of smartphone applications, expanded to population by the provider. Not operator data.</p>
+  <div class="cols c32">
+    <figure class="plain"><img src="../figures/jp_day_night_bare.png" alt="Hiroshima: night presence and day to night ratio"></figure>
+    <table>
+      <tr><th></th><th class="n">value</th></tr>
+      <tr><td>Naka-ku, weekday day: presence by residents of the ward</td><td class="n">{{jp_local_share_ward*100:.0f}} %</td></tr>
+      <tr><td>the same at night</td><td class="n">{{jp_local_share_ward_night*100:.0f}} %</td></tr>
+      <tr><td>cells with more people by day</td><td class="n">{{jp_ratio_share_above_1*100:.0f}} %</td></tr>
+      <tr class="hl"><td>yearly totals 2019 to 2021 agree within</td><td class="n">{{jp_volume_drift*100:.2f}} %</td></tr>
+      <tr><td>local share, weekday day, 2019</td><td class="n">{{jp_local_share_2019:.3f}}</td></tr>
+      <tr><td>2020</td><td class="n">{{jp_local_share_2020:.3f}}</td></tr>
+      <tr><td>2021</td><td class="n">{{jp_local_share_2021:.3f}}</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">Source: MLIT nationwide people-flow open data (provider Agoop). Volumes are normalised: compare composition between years, never totals.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 21b -->
+<section class="slide eurostat">
+  <h2>Test 4. Ask whether there are classes before naming them</h2>
+  <p class="lede">Studies of phone data cluster temporal profiles and name the clusters as land uses. {{jp_profile_cells:,}} Hiroshima cells, four time slots: HDBSCAN finds no classes, and rule-based classes return the share the threshold asks for.</p>
+  <div class="cols" style="grid-template-columns: 2.1fr 1fr">
+    <figure class="plain"><img src="../figures/jp_clusterability_bare.png" alt="HDBSCAN noise share by setting and class shares by threshold"></figure>
+    <table class="dense">
+      <tr><th></th><th class="n">value</th></tr>
+      <tr><td>four-slot composition: settings with all cells as noise</td><td class="n">{{jp_hdbscan_comp_all_noise_settings}} of {{jp_hdbscan_settings}}</td></tr>
+      <tr><td>two axes: noise share</td><td class="n">{{jp_hdbscan_noise_min*100:.0f}} to {{jp_hdbscan_noise_max*100:.0f}} %</td></tr>
+      <tr><td>two axes: largest cluster at the loosest setting</td><td class="n">{{jp_hdbscan_largest_cluster_share_max*100:.0f}} %</td></tr>
+      <tr><td>Hopkins statistic</td><td class="n">{{jp_hopkins:.2f}}</td></tr>
+      <tr><td>k-means silhouette, k = 2</td><td class="n">{{jp_kmeans_best_silhouette:.2f}}</td></tr>
+      <tr><td>k-means silhouette, k = 4</td><td class="n">{{jp_kmeans4_silhouette:.2f}}</td></tr>
+      <tr class="hl"><td>share of "mixed", ratio 1.25 to 2</td><td class="n">{{jp_sig_mixed_share_min*100:.0f}} to {{jp_sig_mixed_share_max*100:.0f}} %</td></tr>
+    </table>
+  </div>
+  <footer><span class="attr">Source: MLIT nationwide people-flow open data (provider Agoop). A high Hopkins value shows concentration. One dense mode also produces it.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 22 -->
+<section class="slide osm">
+  <h2>OpenStreetMap traces. Count minutes, not points</h2>
+  <p class="lede">200,000 points is the limit of the request: 40 pages of 5,000.</p>
+  <div class="cols" style="grid-template-columns: 2.3fr 1fr">
+    <figure class="plain"><img src="../figures/osm_traces_bare.png" alt="OSM GPS traces: points, distinct minutes and concentration in three windows"></figure>
+    <div>
+      <table class="dense">
+        <tr><th>Window</th><th class="n">minutes</th><th class="n">median year</th><th class="n">busiest cell</th></tr>
+        <tr><td>Hiroshima</td><td class="n">{{osm_hij_unique_min:,}}</td><td class="n">{{osm_hij_median_year}}</td><td class="n">{{osm_hij_top_cell*100:.0f}} %</td></tr>
+        <tr><td>Belgrade</td><td class="n">{{osm_bgd_unique_min:,}}</td><td class="n">{{osm_bgd_median_year}}</td><td class="n">{{osm_bgd_top_cell*100:.0f}} %</td></tr>
+        <tr><td>London, Soho</td><td class="n">{{osm_lon_unique_min:,}}</td><td class="n">{{osm_lon_median_year}}</td><td class="n">{{osm_lon_top_cell*100:.0f}} %</td></tr>
+      </table>
+      <p class="small" style="margin-top:14px">Version 1 compared traces with daytime presence and with mapped places. {{osm_hij_three_way_n}} shared cells give no power, and the test is withdrawn. What remains is a statement about the source: a few thousand minutes of recording per window.</p>
+    </div>
+  </div>
+  <footer><span class="attr">© OpenStreetMap contributors, ODbL. H3 resolution 8.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 23 -->
+<section class="slide">
+  <h2>Deck v1, audited</h2>
+  <p class="lede">{{deck_numbers}} numbers in the first version of these slides. {{deck_reproduced}} reproduced within the rounding of the slide, {{deck_corrected}} corrected. Three statements of fact corrected.</p>
+  <table class="dense">
+    <tr><th>What the deck said</th><th>What the pipeline gives</th><th>Kind of error</th></tr>
+    <tr><td>District level: 0.961 observed, 0.798 random, "80 % is arithmetic"</td><td>{{uk_district_observed_clean:.3f}} and {{uk_district_random_clean:.3f}}; {{uk_district_null_share_clean*100:.0f}} %</td><td>computed before people coded at home were removed</td></tr>
+    <tr><td>Most open Dutch region: Delfzijl 0.45</td><td>Zaanstreek {{nl_sc_min:.2f}}; Delfzijl {{nl_sc_delfzijl:.2f}}</td><td>right number, wrong name</td></tr>
+    <tr><td>Most closed: Zeeuwsch-Vlaanderen 0.88</td><td>Zuid-Limburg {{nl_sc_max:.2f}}; Zeeuwsch-Vlaanderen {{nl_sc_zeeuwsch_vlaanderen:.2f}}</td><td>right number, wrong name</td></tr>
+    <tr><td>Education-work difference against urban area share: r = −0.28</td><td>−0.28 belongs to work self-containment; for the difference {{rs_r_gap_urb_area:+.2f}}</td><td>right number, wrong quantity</td></tr>
+    <tr><td>HDBSCAN: 100 % noise</td><td>at {{jp_hdbscan_comp_all_noise_settings}} of {{jp_hdbscan_settings}} settings on composition; never on the two axes</td><td>condition left out</td></tr>
+    <tr><td>Work against education: r = 0.82</td><td>{{rs_r_edu_work:.2f}}; {{rs_r_edu_work_all168:.2f}} with the 8 structural zeros</td><td>no variant gives 0.82</td></tr>
+    <tr><td>Belgrade, traces against places: +0.67</td><td>{{osm_bgd_spearman:+.2f}}</td><td>cell table regenerated since</td></tr>
+    <tr><td>235 areas, then 67 after the rule</td><td>235 is 2021; 67 comes from the 197 of 2011. 2021 gives {{uk_ttwa_greedy_2021}}</td><td>two years in one sentence</td></tr>
+    <tr><td>Japanese data are operator data of NTT docomo</td><td>a panel of smartphone applications; provider Agoop</td><td>fact</td></tr>
+    <tr><td>Only Japan publishes time of day</td><td>Spain publishes hourly operator matrices</td><td>fact</td></tr>
+    <tr><td>Dutch table discontinued after 2014</td><td>successors exist; the current one has municipal pairs</td><td>fact</td></tr>
+  </table>
+  <footer><span class="attr">Full register: docs/RESULTS.md. Corrections: docs/ERRATA.md.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 24 -->
+<section class="slide all">
+  <div class="rail"><i class="e"></i><i class="o"></i><i class="c"></i></div>
+  <h2>Which source for which question</h2>
+  <table>
+    <tr><th>Question</th><th>Source that can answer it</th><th>Check before use</th></tr>
+    <tr><td>Delimitation, commuting structure</td><td><span class="src c"></span>census or register pairs at fine units; <span class="src e"></span>operator trip matrices</td><td>codes for people without a commute; unit of count; both baselines; contiguity; census date</td></tr>
+    <tr><td>Self-containment where no pairs exist</td><td><span class="src c"></span>destination bands</td><td>definition of the migrant; units of one settlement</td></tr>
+    <tr><td>Trips and presence by time of day</td><td><span class="src e"></span>operator trip matrices; panel products</td><td>who is in the sample; expansion; normalisation; suppression threshold; what "from" means</td></tr>
+    <tr><td>Urbanisation of a unit</td><td><span class="src e"></span>population grid with settlement classes</td><td>weight by population; epoch of the raster</td></tr>
+    <tr><td>Routes of single recordings</td><td><span class="src o"></span>OSM public traces</td><td>distinct minutes; concentration; age of traces</td></tr>
+  </table>
+  <h2 style="margin-top:26px; font-size:22px">Four tests that need only the open file</h2>
+  <div class="cols c2" style="gap:0 40px">
+    <ol class="steps">
+      <li><b>Read</b><span>the code list. Where do people without a trip land in the matrix?</span></li>
+      <li><b>Shuffle</b><span>d + (1 − d) h, then contiguous partitions of the same sizes from a recombination chain.</span></li>
+    </ol>
+    <ol class="steps" start="3" style="counter-reset: step 2">
+      <li><b>Compare</b><span>constructions on the placement term, and maps through the error matrix, in people.</span></li>
+      <li><b>Test</b><span>for clusters before naming classes; state the thresholds.</span></li>
+    </ol>
+  </div>
+  <footer><span class="attr">Where sources agree the result holds. Where they differ, the difference is the finding.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 25 -->
+<section class="slide">
+  <h2>Limits</h2>
+  <div class="cols c2">
+    <ul>
+      <li>Three kinds of count: persons at a census, employee jobs with a modelled place of work, expanded trips. Compare partitions within a matrix, not magnitudes across countries.</li>
+      <li>The 2021 census day was a lockdown day. Comparisons with the official map use 2011.</li>
+      <li>Official areas are built from smaller blocks; {{uk_msoa_cut_by_ttwa_2021}} units are cut.</li>
+      <li>The recombination chain targets the spanning-tree distribution, which favours compact areas. It is not a uniform sample.</li>
+      <li>The official production code was not run, and the official map was cleaned by a secondary process. LabourMarketAreas is the open implementation of the published method.</li>
+      <li>The linear form of the validity trade-off is an assumption.</li>
+    </ul>
+    <ul>
+      <li>Dutch pairs are rounded to 100 jobs and keep {{nl23_retained_total*100:.1f}} % of jobs; all figures provisional.</li>
+      <li>Spanish trips mix work with study, come from one operator and cover five weekdays. The size thresholds were set for persons.</li>
+      <li>GHSL epoch 2030 is a projection: {{rs_pop_ghsl/1e6:.2f}} million people against about 6.65 million in the census.</li>
+      <li>Who is in the Japanese panel is not published. Cells under 10 people are absent.</li>
+    </ul>
+  </div>
+  <h2 style="margin-top:14px; font-size:22px">Next</h2>
+  <p class="small" style="max-width:1050px">Coombes-Bond on the 2021 matrix and on the Dutch series 2021 to 2024. The package's contiguity fine-tuning in the decomposition. The Spanish matrix of recurrent mandatory mobility, which counts persons. Japanese census pairs for Hiroshima.</p>
+  <footer><span class="attr">Paper, Sections 6 and 7.</span><span class="pg"></span></footer>
+</section>
+
+<!-- 26 -->
+<section class="slide all">
+  <div class="rail"><i class="e"></i><i class="o"></i><i class="c"></i></div>
+  <h2>Run it</h2>
+  <div class="cols c2">
+    <div>
+      <div class="formula" style="font-size:14.5px; line-height:1.7">git clone https://github.com/m-erts/urban-functional-maps<br>conda env create -f environment.yml<br>make env-r   <span class="muted"># R, for Coombes-Bond</span><br>python scripts/fetch_data.py<br>make all</div>
+      <table class="dense">
+        <tr><th>What keeps the numbers honest</th></tr>
+        <tr><td>One parameter file. One file of results. Documents rendered from templates: no number is typed.</td></tr>
+        <tr><td>A frozen snapshot is the regression target of the tests.</td></tr>
+        <tr><td>Reconciliation tests: sums equal published totals, joins are one to one, structural zeros are explained.</td></tr>
+        <tr><td>Input files listed with address, licence and SHA-256.</td></tr>
+        <tr><td>The run repeated in a fresh environment from the lock file gave the same values.</td></tr>
+      </table>
+    </div>
+    <div class="rule-l">
+      <p><strong>Repository</strong><br><span class="num">github.com/m-erts/urban-functional-maps</span></p>
+      <p><strong>Paper</strong><br><span class="num">docs/paper/paper.pdf</span></p>
+      <p><strong>Licences</strong><br>Code MIT. Text, figures, slides CC BY 4.0.</p>
+      <p class="small"><strong>Data</strong><br>Office for National Statistics, OGL v3.0. Statistics Netherlands (CBS), CC BY 4.0. Basado en datos abiertos Ministerio de Transportes y Movilidad Sostenible. Statistical Office of the Republic of Serbia. GeoSrbija. MLIT Japan, provider Agoop. European Commission JRC, GHSL, CC BY 4.0. © OpenStreetMap contributors, ODbL.</p>
+      <p class="small">Marija Ercegovac, <span class="num">orcid.org/0009-0008-3040-5515</span>. Channel: URBAN_MASH.</p>
+    </div>
+  </div>
+  <footer><span class="attr">Keys: left and right arrows to move, D for dark reading mode, P to print to PDF.</span><span class="pg"></span></footer>
+</section>
+
+</main>
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('stage');
+  var i = 0;
+  slides.forEach(function (s, k) { s.querySelector('.pg').textContent = (k + 1) + ' / ' + slides.length; });
+  function fit() {
+    var k = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    stage.style.transform = 'scale(' + k + ') translate(-50%, -50%)';
+  }
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+    if (location.hash !== '#' + (i + 1)) { history.replaceState(null, '', '#' + (i + 1)); }
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { show(i + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(i - 1); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End') { show(slides.length - 1); }
+    else if (e.key === 'd' || e.key === 'D') { document.documentElement.classList.toggle('dark'); }
+    else if (e.key === 'p' || e.key === 'P') { window.print(); }
+  });
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('a')) { return; }
+    show(i + (e.clientX > window.innerWidth / 2 ? 1 : -1));
+  });
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function () { show((parseInt(location.hash.slice(1), 10) || 1) - 1); });
+  fit();
+  show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>
